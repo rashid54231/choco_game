@@ -198,11 +198,15 @@ class GameStateNotifier extends StateNotifier<GameState> {
     _isAnimatingSteps = false;
     final resolution = _pendingResolution;
 
+    // Update live stars so HUD reflects current score immediately
+    final liveStars = state.level.starsForScore(state.goal.score);
+
     state = state.copyWith(
       board: resolution?.finalBoard ?? state.board,
       combo: resolution?.steps.length ?? 0,
       isResolving: false,
       animState: BoardAnimState.idle,
+      stars: liveStars,
     );
 
     _pendingSteps = [];

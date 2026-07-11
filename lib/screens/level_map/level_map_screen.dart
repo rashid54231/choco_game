@@ -297,99 +297,141 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
     final isMilestone = level % 10 == 0;
     final stars = _levelStars[level] ?? 0;
 
+    // Circle node size; stars pill floats above the node
+    const double nodeSize = 64.0;
+    const double pillH = 26.0;
+    const double pillW = 70.0;
+    const double pillOffset = 6.0; // how many px the pill overlaps the top of the circle
+
+    // Total height = pill + overlap-adjusted node
+    final double totalH = pillH - pillOffset + nodeSize;
+
     return Positioned(
-      left: pos.dx - 28,
-      top: pos.dy - 28,
+      // Centre the node on the path point; account for pill above
+      left: pos.dx - nodeSize / 2,
+      top: pos.dy - (nodeSize / 2) - (pillH - pillOffset),
       child: GestureDetector(
         onTap: isUnlocked ? () => _playLevel(level) : null,
         child: SizedBox(
-          width: 56,
-          height: 56,
+          width: nodeSize,
+          height: totalH,
           child: Stack(
             clipBehavior: Clip.none,
+            alignment: Alignment.bottomCenter,
             children: [
-              // Circle node
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: isCompleted
-                      ? const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Color(0xFF66BB6A), Color(0xFF388E3C)],
-                        )
-                      : isCurrent
-                          ? const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [Color(0xFFFF6B9D), Color(0xFFE91E7A)],
-                            )
-                          : isUnlocked
-                              ? const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [Color(0xFFAB47BC), Color(0xFF7B1FA2)],
-                                )
-                              : LinearGradient(
-                                  colors: [Colors.grey[800]!, Colors.grey[900]!],
-                                ),
-                  border: Border.all(
-                    color: isCurrent
-                        ? Colors.white
-                        : isCompleted
-                            ? const Color(0xFFA5D6A7)
-                            : isMilestone
-                                ? const Color(0xFFFFD54F)
-                                : Colors.white.withOpacity(0.3),
-                    width: isCurrent ? 3 : isMilestone ? 2.5 : 1.5,
+              // ── Circle node (bottom-aligned) ──────────────────
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: nodeSize,
+                  height: nodeSize,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: isCompleted
+                        ? const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF66BB6A), Color(0xFF388E3C)],
+                          )
+                        : isCurrent
+                            ? const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [Color(0xFFFF6B9D), Color(0xFFE91E7A)],
+                              )
+                            : isUnlocked
+                                ? const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [Color(0xFFAB47BC), Color(0xFF7B1FA2)],
+                                  )
+                                : LinearGradient(
+                                    colors: [Colors.grey[800]!, Colors.grey[900]!],
+                                  ),
+                    border: Border.all(
+                      color: isCurrent
+                          ? Colors.white
+                          : isCompleted
+                              ? const Color(0xFFA5D6A7)
+                              : isMilestone
+                                  ? const Color(0xFFFFD54F)
+                                  : Colors.white.withOpacity(0.3),
+                      width: isCurrent ? 3 : isMilestone ? 2.5 : 1.5,
+                    ),
+                    boxShadow: [
+                      if (isCurrent)
+                        BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 16, spreadRadius: 3),
+                      if (isMilestone && !isCurrent)
+                        BoxShadow(color: AppColors.gold.withOpacity(0.3), blurRadius: 12, spreadRadius: 2),
+                      BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3)),
+                    ],
                   ),
-                  boxShadow: [
-                    if (isCurrent)
-                      BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 16, spreadRadius: 3),
-                    if (isMilestone && !isCurrent)
-                      BoxShadow(color: AppColors.gold.withOpacity(0.3), blurRadius: 12, spreadRadius: 2),
-                    BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3)),
-                  ],
-                ),
-                child: Center(
-                  child: isCompleted
-                      ? const Icon(Icons.check_rounded, color: Colors.white, size: 26)
-                      : isUnlocked
-                          ? Text(
-                              '$level',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 18,
-                                fontFamily: 'Baloo2',
-                              ),
-                            )
-                          : Icon(Icons.lock_rounded, color: Colors.white.withOpacity(0.4), size: 20),
+                  child: Center(
+                    child: isCompleted
+                        // Smaller tick so the stars above are the hero
+                        ? const Icon(Icons.check_rounded, color: Colors.white, size: 20)
+                        : isUnlocked
+                            ? Text(
+                                '$level',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 20,
+                                  fontFamily: 'Baloo2',
+                                ),
+                              )
+                            : Icon(Icons.lock_rounded, color: Colors.white.withOpacity(0.4), size: 22),
+                  ),
                 ),
               ),
-              // Stars badge below node
-              if (isCompleted && stars > 0)
+
+              // ── Stars pill (top, overlapping node edge) ───────
+              if (isCompleted)
                 Positioned(
-                  bottom: -10,
-                  left: 0,
-                  right: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(3, (i) {
-                      final filled = i < stars;
-                      return Icon(
-                        filled ? Icons.star_rounded : Icons.star_border_rounded,
-                        size: 12,
-                        color: filled ? AppColors.gold : Colors.white30,
-                        shadows: [
-                          Shadow(color: Colors.black.withOpacity(0.6), blurRadius: 3),
+                  top: 0,
+                  child: Container(
+                    width: pillW,
+                    height: pillH,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF2D1B69).withOpacity(0.95),
+                          const Color(0xFF1A0533).withOpacity(0.95),
                         ],
-                      );
-                    }),
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: stars > 0
+                            ? const Color(0xFFFFD740).withOpacity(0.7)
+                            : Colors.white.withOpacity(0.15),
+                        width: 1.2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: stars > 0
+                              ? const Color(0xFFFFD740).withOpacity(0.25)
+                              : Colors.black.withOpacity(0.4),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(3, (i) {
+                        final filled = i < stars;
+                        return Icon(
+                          filled ? Icons.star_rounded : Icons.star_border_rounded,
+                          size: 18,
+                          color: filled ? const Color(0xFFFFD740) : Colors.white30,
+                        );
+                      }),
+                    ),
                   ),
                 ),
             ],
