@@ -80,7 +80,7 @@ class LevelModel {
   /// Default level for offline play (no Supabase required).
   /// Level 1-10: normal, 11-20: harder, 21-30: expert.
   factory LevelModel.level(int levelNumber) {
-    // Gradual score increase: 1-10 easy, 11-20 medium, 21-30 hard
+    // Gradual score increase: 1-10 easy, 11-20 medium, 21-30 hard, 31-50 expert
     final int scoreGoal;
     if (levelNumber <= 10) {
       // 2000 to 5500 (easy)
@@ -88,27 +88,32 @@ class LevelModel {
     } else if (levelNumber <= 20) {
       // 6000 to 12500 (medium)
       scoreGoal = 5500 + (levelNumber - 10) * 700;
-    } else {
-      // 13000 to 25000 (hard — complete near last moves)
+    } else if (levelNumber <= 30) {
+      // 13000 to 25500 (hard)
       scoreGoal = 12500 + (levelNumber - 20) * 1300;
+    } else {
+      // 26000 to 57500 (expert)
+      scoreGoal = 25500 + (levelNumber - 30) * 1600;
     }
 
-    final goals = List.generate(30, (i) {
+    final goals = List.generate(50, (i) {
       final lvl = i + 1;
       final g = lvl <= 10
           ? 1500 + lvl * 400
           : lvl <= 20
               ? 5500 + (lvl - 10) * 700
-              : 12500 + (lvl - 20) * 1300;
+              : lvl <= 30
+                  ? 12500 + (lvl - 20) * 1300
+                  : 25500 + (lvl - 30) * 1600;
       return GoalTarget(type: GoalType.score, score: g);
     });
     final idx = (levelNumber - 1).clamp(0, goals.length - 1);
 
-    // Grid: 8x8 (1-15), 9x9 (16-25), 10x10 (26-30)
-    final grid = levelNumber >= 26 ? 10 : (levelNumber >= 16 ? 9 : 8);
+    // Grid: 8x8 (1-15), 9x9 (16-30), 10x10 (31-50)
+    final grid = levelNumber >= 31 ? 10 : (levelNumber >= 16 ? 9 : 8);
 
     // Moves: 30 at level 1, gradually decrease
-    final moves = (30 - ((levelNumber - 1) * 0.4).floor()).clamp(18, 30);
+    final moves = (30 - ((levelNumber - 1) * 0.45).floor()).clamp(15, 30);
 
     // Star thresholds
     final s1 = (scoreGoal * 0.5).round();

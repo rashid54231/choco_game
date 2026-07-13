@@ -44,6 +44,7 @@ class GameState {
   final bool isFailed;
   final int stars;
   final BoardAnimState animState;
+  final bool isHammerMode;
 
   const GameState({
     required this.board,
@@ -57,6 +58,7 @@ class GameState {
     this.isFailed = false,
     this.stars = 0,
     this.animState = BoardAnimState.idle,
+    this.isHammerMode = false,
   });
 
   GameState copyWith({
@@ -70,6 +72,7 @@ class GameState {
     bool? isFailed,
     int? stars,
     BoardAnimState? animState,
+    bool? isHammerMode,
   }) {
     return GameState(
       board: board ?? this.board,
@@ -83,6 +86,7 @@ class GameState {
       isFailed: isFailed ?? this.isFailed,
       stars: stars ?? this.stars,
       animState: animState ?? this.animState,
+      isHammerMode: isHammerMode ?? this.isHammerMode,
     );
   }
 }
@@ -363,6 +367,104 @@ class GameStateNotifier extends StateNotifier<GameState> {
   void reshuffle() {
     if (state.isComplete || state.isFailed) return;
     _ensureSolvable();
+  }
+
+  void useExtraMovesBooster() {
+    if (state.isResolving || state.isComplete || state.isFailed) return;
+    if (!state.level.hasMoves) return;
+    state = state.copyWith(movesLeft: state.movesLeft + 5);
+  }
+
+  void useColorBombBooster() {
+    if (state.isResolving || state.isComplete || state.isFailed) return;
+    final board = BoardHelper.clone(state.board);
+    final rows = BoardHelper.rows(board);
+    final cols = BoardHelper.cols(board);
+
+    // Find all non-empty tiles that are not already Color Bombs
+    final candidates = <Cell>[];
+    for (int r = 0; r < rows; r++) {
+      for (int c = 0; c < cols; c++) {
+        final t = board[r][c];
+        if (!t.isEmpty && t.special != SpecialKind.colorBomb) {
+          candidates.add(Cell(r, c));
+        }
+      }
+    }
+    if (candidates.isEmpty) return;
+    final target = candidates[DateTime.now().millisecond % candidates.length];
+
+    board[target.r][target.c] = Tile(
+      type: board[target.r][target.c].type ?? TileType.blueSphere,
+      special: SpecialKind.colorBomb,
+    );
+    state = state.copyWith(board: board);
+    HapticFeedback.heavyImpact();
+  }
+
+  void toggleHammerMode() {
+    if (state.isResolving || state.isComplete || state.isFailed) return;
+    state = state.copyWith(isHammerMode: !state.isHammerMode);
+  }
+
+  Future<void> useHammerBooster(int r, int c) async {
+    if (state.isResolving || state.isComplete || state.isFailed) return;
+    if (state.board[r][c].isEmpty) return;
+
+    HapticFeedback.heavyImpact();
+
+    final targetCell = Cell(r, c);
+    final affected = <Cell>{targetCell};
+
+    // Show visual pop/clear effect
+    state = state.copyWith(
+      isResolving: true,
+      isHammerMode: false,
+      animState: BoardAnimState.flash(affected, 0, 1),
+    );
+    await Future.delayed(const Duration(milliseconds: 40));
+    if (!mounted) return;
+
+    state = state.copyWith(
+      animState: BoardAnimState.pop(affected, 0, 1),
+    );
+    await Future.delayed(const Duration(milliseconds: 30));
+    if (!mounted) return;
+
+    var current = BoardHelper.clone(state.board);
+    current[r][c] = const Tile.empty();
+    current = _resolver.applyGravity(current);
+    current = _resolver.refill(current);
+
+    final resolution = _resolver.resolve(current);
+    _pendingResolution = resolution;
+    _pendingSteps = List.from(resolution.steps);
+
+    // Score for the hammered tile
+    final gained = GameConstants.baseTileScore +
+        _scoring.scoreForResolution(resolution) +
+        _scoring.scoreForActivations(resolution);
+
+    final oldGoal = state.goal;
+    final goal = GoalProgress(
+      score: oldGoal.score + gained,
+      collected: Map.from(oldGoal.collected),
+    );
+    final t = state.board[r][c].type;
+    if (t != null) goal.addCollected(t, 1);
+
+    for (final t in resolution.clearedTypes) {
+      goal.addCollected(t, _countTypeInResolution(resolution, t));
+    }
+
+    state = state.copyWith(goal: goal);
+
+    _isAnimatingSteps = true;
+    try {
+      await _animateNextStep();
+    } catch (_) {
+      _finishCascade();
+    }
   }
 
   /// Tap on a special tile to activate it directly — SUPER POWERFUL.

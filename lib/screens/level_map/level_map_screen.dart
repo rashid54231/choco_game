@@ -1,21 +1,23 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:choco_blast_adventure/core/theme/app_colors.dart';
 import 'package:choco_blast_adventure/models/level_model.dart';
+import 'package:choco_blast_adventure/providers/profile_provider.dart';
 import 'package:choco_blast_adventure/screens/gameplay/gameplay_screen.dart';
 import 'package:choco_blast_adventure/screens/home/home_screen.dart';
 import 'package:choco_blast_adventure/services/cache_service.dart';
 
 /// Professional level map — dark cosmic theme with glowing path and milestone markers.
-class LevelMapScreen extends StatefulWidget {
+class LevelMapScreen extends ConsumerStatefulWidget {
   const LevelMapScreen({super.key});
   @override
-  State<LevelMapScreen> createState() => _LevelMapScreenState();
+  ConsumerState<LevelMapScreen> createState() => _LevelMapScreenState();
 }
 
-class _LevelMapScreenState extends State<LevelMapScreen> {
+class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
   final ScrollController _scroll = ScrollController();
   int _selectedTab = 0;
   Set<int> _completed = {};
@@ -83,7 +85,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                             controller: _scroll,
                             padding: const EdgeInsets.only(bottom: 80),
                             child: SizedBox(
-                              height: screenH * 1.8,
+                              height: screenH * 3.2,
                               child: _buildPath(),
                             ),
                           ),
@@ -157,6 +159,9 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
   }
 
   Widget _topBar() {
+    final profile = ref.watch(profileProvider);
+    final coins = profile?.coins ?? 0;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 4, 12, 0),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -172,7 +177,27 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
         children: [
           // Hearts
           _heartBadge(),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
+          // Coins
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              gradient: AppColors.goldGradient,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.monetization_on_rounded, color: Colors.white, size: 14),
+                const SizedBox(width: 3),
+                Text(
+                  '$coins',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12, fontFamily: 'Baloo2'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
           // Level info
           Expanded(
             child: Column(
@@ -188,7 +213,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                   ),
                 ),
                 Text(
-                  '${_completed.length} / 30 completed',
+                  '${_completed.length} / 50 completed',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.6),
                     fontSize: 11,
@@ -214,7 +239,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                 BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8),
               ],
             ),
-            child: const Center(child: Text('🍪', style: TextStyle(fontSize: 20))),
+            child: Center(child: Text(profile?.avatarUrl ?? '🍪', style: const TextStyle(fontSize: 20))),
           ),
           const SizedBox(width: 8),
           // Home
@@ -260,14 +285,14 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
   }
 
   Widget _buildPath() {
-    final levelCount = 30;
+    final levelCount = 50;
     final pathPoints = <Offset>[];
     final screenW = MediaQuery.of(context).size.width;
 
     for (int i = 0; i < levelCount; i++) {
       final t = i / (levelCount - 1);
-      final y = 60.0 + t * (MediaQuery.of(context).size.height * 1.7);
-      final x = screenW / 2 + math.sin(t * math.pi * 3) * (screenW * 0.3);
+      final y = 60.0 + t * (MediaQuery.of(context).size.height * 3.1);
+      final x = screenW / 2 + math.sin(t * math.pi * 5) * (screenW * 0.3);
       pathPoints.add(Offset(x, y));
     }
 
@@ -275,12 +300,12 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
       children: [
         // Path glow
         CustomPaint(
-          size: Size(screenW, MediaQuery.of(context).size.height * 1.8),
+          size: Size(screenW, MediaQuery.of(context).size.height * 3.2),
           painter: _PathGlowPainter(pathPoints),
         ),
         // Path
         CustomPaint(
-          size: Size(screenW, MediaQuery.of(context).size.height * 1.8),
+          size: Size(screenW, MediaQuery.of(context).size.height * 3.2),
           painter: _PathPainter(pathPoints),
         ),
         // Level nodes
@@ -452,7 +477,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
 
   void _levelUp() async {
     final nextLevel = _highestUnlocked + 1;
-    if (nextLevel > 30) {
+    if (nextLevel > 50) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Already at max level!')),

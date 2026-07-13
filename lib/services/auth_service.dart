@@ -64,10 +64,33 @@ class AuthService {
           'lives': GameConstants.startingLives,
           'last_life_regen': DateTime.now().toIso8601String(),
           'is_premium': false,
+          'coins': 1000,
+          'booster_extra_moves': 3,
+          'booster_color_bomb': 2,
+          'booster_hammer': 2,
+          'booster_shuffle': 3,
         })
         .select()
         .single();
     return UserProfile.fromJson(inserted);
+  }
+
+  /// Update the current profile columns on Supabase.
+  Future<void> updateProfile(UserProfile profile) async {
+    final user = currentUser;
+    if (user == null) return;
+    await _client.from('profiles').update({
+      'coins': profile.coins,
+      'booster_extra_moves': profile.boosterExtraMoves,
+      'booster_color_bomb': profile.boosterColorBomb,
+      'booster_hammer': profile.boosterHammer,
+      'booster_shuffle': profile.boosterShuffle,
+      'lives': profile.lives,
+      'total_score': profile.totalScore,
+      'current_level': profile.currentLevel,
+      'username': profile.username,
+      'avatar_url': profile.avatarUrl,
+    }).eq('id', user.id);
   }
 
   /// Fetch the current profile (after auth state is known).

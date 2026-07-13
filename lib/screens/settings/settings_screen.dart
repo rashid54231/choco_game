@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import 'package:choco_blast_adventure/core/theme/app_colors.dart';
 import 'package:choco_blast_adventure/core/theme/app_text_styles.dart';
+import 'package:choco_blast_adventure/models/user_profile_model.dart';
 import 'package:choco_blast_adventure/providers/auth_provider.dart';
 import 'package:choco_blast_adventure/providers/profile_provider.dart';
 import 'package:choco_blast_adventure/screens/auth/login_screen.dart';
@@ -64,43 +65,52 @@ class SettingsScreen extends ConsumerWidget {
               ),
 
               // ── Profile card ──────────────────────────────
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: AppColors.purpleGradient,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(color: AppColors.candyPurple.withOpacity(0.3), blurRadius: 16),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.2),
-                        border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
-                      ),
-                      child: const Icon(Icons.person, color: Colors.white, size: 28),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(profile?.username ?? 'Guest', style: AppTextStyles.titleLarge),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Total Score: ${profile?.totalScore ?? 0}',
-                            style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13, fontFamily: 'Baloo2'),
+              GestureDetector(
+                onTap: () => _showEditProfileDialog(context, ref, profile),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.purpleGradient,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(color: AppColors.candyPurple.withOpacity(0.3), blurRadius: 16),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withOpacity(0.2),
+                          border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+                        ),
+                        child: Center(
+                          child: Text(
+                            profile?.avatarUrl ?? '🍪',
+                            style: const TextStyle(fontSize: 28),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(profile?.username ?? 'Guest', style: AppTextStyles.titleLarge),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Total Score: ${profile?.totalScore ?? 0}',
+                              style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13, fontFamily: 'Baloo2'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.edit_rounded, color: Colors.white70, size: 18),
+                    ],
+                  ),
                 ),
               ).animate(delay: 100.ms).fadeIn().slideY(begin: 0.2, end: 0),
 
@@ -238,6 +248,157 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showEditProfileDialog(BuildContext context, WidgetRef ref, UserProfile? profile) {
+    if (profile == null) return;
+    final usernameController = TextEditingController(text: profile.username);
+    String selectedAvatar = profile.avatarUrl ?? '🍪';
+    final avatars = ['🍪', '🍩', '🍭', '🍬', '🍫', '🧁', '🍒', '🍓'];
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF2D1B69), Color(0xFF150B35)],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: const Color(0xFF6C5CE7).withOpacity(0.2)),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 30)],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Center(
+                      child: Text(
+                        'Edit Profile',
+                        style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800, fontFamily: 'Baloo2'),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Username',
+                      style: TextStyle(color: Colors.white70, fontSize: 13, fontFamily: 'Baloo2', fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: usernameController,
+                      style: const TextStyle(color: Colors.white, fontFamily: 'Baloo2'),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.08),
+                        hintText: 'Enter username',
+                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Select Avatar',
+                      style: TextStyle(color: Colors.white70, fontSize: 13, fontFamily: 'Baloo2', fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 50,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: avatars.length,
+                        itemBuilder: (context, idx) {
+                          final av = avatars[idx];
+                          final isSelected = av == selectedAvatar;
+                          return GestureDetector(
+                            onTap: () => setState(() => selectedAvatar = av),
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 10),
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: isSelected ? AppColors.candy.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isSelected ? AppColors.candy : Colors.white.withOpacity(0.1),
+                                  width: isSelected ? 2 : 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(av, style: const TextStyle(fontSize: 22)),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Container(
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Cancel',
+                                  style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600, fontFamily: 'Baloo2'),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () async {
+                              final name = usernameController.text.trim();
+                              if (name.isNotEmpty) {
+                                await ref.read(profileProvider.notifier).updateUsernameAndAvatar(name, selectedAvatar);
+                                if (context.mounted) Navigator.pop(context);
+                              }
+                            },
+                            child: Container(
+                              height: 40,
+                              decoration: BoxDecoration(
+                                gradient: AppColors.pinkButtonGradient,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Save',
+                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontFamily: 'Baloo2'),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

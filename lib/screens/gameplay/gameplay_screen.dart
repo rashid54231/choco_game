@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:choco_blast_adventure/models/level_model.dart';
@@ -130,50 +131,58 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
             colors: [Color(0xFF1A0533), Color(0xFF0D0221), Color(0xFF0A0118)],
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _hud(game),
-              const SizedBox(height: 6),
-              // Game board
-              Expanded(
-                child: Center(
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF150B35),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: const Color(0xFF3A2570).withOpacity(0.5), width: 1.5),
-                          boxShadow: [
-                            BoxShadow(color: const Color(0xFFAB47BC).withOpacity(0.12), blurRadius: 40, spreadRadius: 8),
-                            BoxShadow(color: const Color(0xFFFF6B9D).withOpacity(0.08), blurRadius: 25, spreadRadius: 3),
-                            BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 8)),
-                          ],
-                        ),
-                        child: GameBoard(level: widget.level, boardSize: boardSize),
-                      ),
-                      Positioned.fill(
-                        child: Center(
-                          child: ComboCounter(
-                            combo: game.combo,
-                            show: game.animState.isAnimating && game.combo >= 2,
+        child: Stack(
+          children: [
+            // Ambient animated glowing backdrop
+            ..._buildBackgroundDecorations(),
+
+            // Main gameplay UI layout
+            SafeArea(
+              child: Column(
+                children: [
+                  _hud(game),
+                  const SizedBox(height: 6),
+                  // Game board
+                  Expanded(
+                    child: Center(
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF150B35),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: const Color(0xFF3A2570).withOpacity(0.5), width: 1.5),
+                              boxShadow: [
+                                BoxShadow(color: const Color(0xFFAB47BC).withOpacity(0.15), blurRadius: 40, spreadRadius: 8),
+                                BoxShadow(color: const Color(0xFFFF6B9D).withOpacity(0.1), blurRadius: 25, spreadRadius: 3),
+                                BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 8)),
+                              ],
+                            ),
+                            child: GameBoard(level: widget.level, boardSize: boardSize),
                           ),
-                        ),
+                          Positioned.fill(
+                            child: Center(
+                              child: ComboCounter(
+                                combo: game.combo,
+                                show: game.animState.isAnimating && game.combo >= 2,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                  // Goal panel below board
+                  _goalPanel(game),
+                  const SizedBox(height: 6),
+                  _boosterTray(),
+                  const SizedBox(height: 4),
+                ],
               ),
-              // Goal panel below board
-              _goalPanel(game),
-              const SizedBox(height: 6),
-              _boosterTray(),
-              const SizedBox(height: 4),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -279,7 +288,12 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                 ),
                 border: Border.all(color: Colors.white.withOpacity(0.25), width: 1.5),
               ),
-              child: const Center(child: Text('🍪', style: TextStyle(fontSize: 18))),
+              child: Center(
+                child: Text(
+                  ref.watch(profileProvider)?.avatarUrl ?? '🍪',
+                  style: const TextStyle(fontSize: 18),
+                ),
+              ),
             ),
           ],
         ),
@@ -474,29 +488,118 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
   }
 
   Widget _boosterTray() {
+    final profile = ref.watch(profileProvider);
+    final game = ref.watch(boardProvider(widget.level));
+    final profileNotifier = ref.read(profileProvider.notifier);
+    final boardNotifier = ref.read(boardProvider(widget.level).notifier);
+
+    final extraMovesCount = profile?.boosterExtraMoves ?? 0;
+    final colorBombCount = profile?.boosterColorBomb ?? 0;
+    final hammerCount = profile?.boosterHammer ?? 0;
+    final shuffleCount = profile?.boosterShuffle ?? 0;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _booster(Icons.add_road_rounded, 'Extra\nMoves', false, null),
-            _booster(Icons.auto_awesome_rounded, 'Color\nBomb', false, null),
-            _booster(Icons.gpp_maybe_rounded, 'Hammer', false, null),
-            _booster(Icons.shuffle_rounded, 'Shuffle', true, () => ref.read(boardProvider(widget.level).notifier).reshuffle()),
-          ],
-        ),
+      child: Column(
+        children: [
+          if (game.isHammerMode)
+            Container(
+              margin: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF9A3C).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFF9A3C).withOpacity(0.5)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.gpp_maybe_rounded, color: Color(0xFFFF9A3C), size: 16),
+                  SizedBox(width: 8),
+                  Text(
+                    'Hammer Active: Tap any tile to break it',
+                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600, fontFamily: 'Baloo2'),
+                  ),
+                ],
+              ),
+            ),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _booster(
+                  Icons.add_road_rounded,
+                  'Moves\n($extraMovesCount)',
+                  extraMovesCount > 0,
+                  () async {
+                    if (extraMovesCount <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Out of Extra Moves! Buy more in the shop.')));
+                      return;
+                    }
+                    final success = await profileNotifier.consumeBooster('extra_moves');
+                    if (success) {
+                      boardNotifier.useExtraMovesBooster();
+                    }
+                  },
+                ),
+                _booster(
+                  Icons.auto_awesome_rounded,
+                  'Bomb\n($colorBombCount)',
+                  colorBombCount > 0,
+                  () async {
+                    if (colorBombCount <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Out of Color Bombs! Buy more in the shop.')));
+                      return;
+                    }
+                    final success = await profileNotifier.consumeBooster('color_bomb');
+                    if (success) {
+                      boardNotifier.useColorBombBooster();
+                    }
+                  },
+                ),
+                _booster(
+                  Icons.gpp_maybe_rounded,
+                  'Hammer\n($hammerCount)',
+                  hammerCount > 0 || game.isHammerMode,
+                  () {
+                    if (hammerCount <= 0 && !game.isHammerMode) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Out of Hammers! Buy more in the shop.')));
+                      return;
+                    }
+                    boardNotifier.toggleHammerMode();
+                  },
+                  highlighted: game.isHammerMode,
+                ),
+                _booster(
+                  Icons.shuffle_rounded,
+                  'Shuffle\n($shuffleCount)',
+                  shuffleCount > 0,
+                  () async {
+                    if (shuffleCount <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Out of Shuffles! Buy more in the shop.')));
+                      return;
+                    }
+                    final success = await profileNotifier.consumeBooster('shuffle');
+                    if (success) {
+                      boardNotifier.reshuffle();
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _booster(IconData icon, String label, bool enabled, VoidCallback? onTap) {
+  Widget _booster(IconData icon, String label, bool enabled, VoidCallback? onTap, {bool highlighted = false}) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -507,12 +610,17 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
             height: 42,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: enabled
-                  ? const LinearGradient(colors: [Color(0xFFFFC773), Color(0xFFFF9A3C)])
-                  : LinearGradient(colors: [Colors.white.withOpacity(0.18), Colors.white.withOpacity(0.08)]),
-              boxShadow: enabled ? [BoxShadow(color: const Color(0xFFFF9A3C).withOpacity(0.35), blurRadius: 8, offset: const Offset(0, 3))] : [],
+              gradient: highlighted
+                  ? const LinearGradient(colors: [Color(0xFFE91E7A), Color(0xFFFF6B9D)])
+                  : (enabled
+                      ? const LinearGradient(colors: [Color(0xFFFFC773), Color(0xFFFF9A3C)])
+                      : LinearGradient(colors: [Colors.white.withOpacity(0.18), Colors.white.withOpacity(0.08)])),
+              boxShadow: (enabled || highlighted)
+                  ? [BoxShadow(color: (highlighted ? const Color(0xFFFF6B9D) : const Color(0xFFFF9A3C)).withOpacity(0.35), blurRadius: 8, offset: const Offset(0, 3))]
+                  : [],
+              border: highlighted ? Border.all(color: Colors.white, width: 1.5) : null,
             ),
-            child: Icon(icon, color: enabled ? const Color(0xFF3E2723) : Colors.white54, size: 20),
+            child: Icon(icon, color: (enabled || highlighted) ? (highlighted ? Colors.white : const Color(0xFF3E2723)) : Colors.white54, size: 20),
           ),
           const SizedBox(height: 2),
           Text(label, textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 8, fontWeight: FontWeight.w600, height: 1.1)),
@@ -644,5 +752,71 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
         ),
       ),
     );
+  }
+
+  List<Widget> _buildBackgroundDecorations() {
+    return [
+      // Soft background glowing spheres
+      Positioned(
+        top: 100,
+        left: -40,
+        child: Container(
+          width: 150,
+          height: 150,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [const Color(0xFFAB47BC).withOpacity(0.12), Colors.transparent],
+            ),
+          ),
+        ),
+      ),
+      Positioned(
+        bottom: 120,
+        right: -30,
+        child: Container(
+          width: 180,
+          height: 180,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [const Color(0xFFFF6B9D).withOpacity(0.1), Colors.transparent],
+            ),
+          ),
+        ),
+      ),
+      Positioned(
+        top: 350,
+        right: -50,
+        child: Container(
+          width: 140,
+          height: 140,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [const Color(0xFF42A5F5).withOpacity(0.08), Colors.transparent],
+            ),
+          ),
+        ),
+      ),
+      // Sparkling background stars
+      for (int i = 0; i < 20; i++)
+        Positioned(
+          left: (i * 37) % MediaQuery.of(context).size.width,
+          top: (i * 59) % MediaQuery.of(context).size.height,
+          child: Container(
+            width: (i % 2 == 0) ? 2 : 3,
+            height: (i % 2 == 0) ? 2 : 3,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(0.15 + (i % 5) * 0.08),
+            ),
+          ).animate(
+            onPlay: (c) => c.repeat(reverse: true),
+          ).fadeOut(
+            duration: Duration(milliseconds: 1500 + i * 200),
+          ),
+        ),
+    ];
   }
 }

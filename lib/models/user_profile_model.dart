@@ -11,6 +11,11 @@ class UserProfile {
   final DateTime lastLifeRegen;
   final bool isPremium;
   final DateTime createdAt;
+  final int coins;
+  final int boosterExtraMoves;
+  final int boosterColorBomb;
+  final int boosterHammer;
+  final int boosterShuffle;
 
   const UserProfile({
     required this.id,
@@ -22,6 +27,11 @@ class UserProfile {
     required this.lastLifeRegen,
     required this.isPremium,
     required this.createdAt,
+    required this.coins,
+    required this.boosterExtraMoves,
+    required this.boosterColorBomb,
+    required this.boosterHammer,
+    required this.boosterShuffle,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -37,6 +47,11 @@ class UserProfile {
       isPremium: json['is_premium'] as bool? ?? false,
       createdAt: DateTime.parse(json['created_at'] as String? ??
           DateTime.now().toIso8601String()),
+      coins: json['coins'] as int? ?? 1000,
+      boosterExtraMoves: json['booster_extra_moves'] as int? ?? 3,
+      boosterColorBomb: json['booster_color_bomb'] as int? ?? 2,
+      boosterHammer: json['booster_hammer'] as int? ?? 2,
+      boosterShuffle: json['booster_shuffle'] as int? ?? 3,
     );
   }
 
@@ -49,6 +64,11 @@ class UserProfile {
         'lives': lives,
         'last_life_regen': lastLifeRegen.toIso8601String(),
         'is_premium': isPremium,
+        'coins': coins,
+        'booster_extra_moves': boosterExtraMoves,
+        'booster_color_bomb': boosterColorBomb,
+        'booster_hammer': boosterHammer,
+        'booster_shuffle': boosterShuffle,
       };
 
   UserProfile copyWith({
@@ -59,6 +79,11 @@ class UserProfile {
     int? lives,
     DateTime? lastLifeRegen,
     bool? isPremium,
+    int? coins,
+    int? boosterExtraMoves,
+    int? boosterColorBomb,
+    int? boosterHammer,
+    int? boosterShuffle,
   }) {
     return UserProfile(
       id: id,
@@ -70,6 +95,11 @@ class UserProfile {
       lastLifeRegen: lastLifeRegen ?? this.lastLifeRegen,
       isPremium: isPremium ?? this.isPremium,
       createdAt: createdAt,
+      coins: coins ?? this.coins,
+      boosterExtraMoves: boosterExtraMoves ?? this.boosterExtraMoves,
+      boosterColorBomb: boosterColorBomb ?? this.boosterColorBomb,
+      boosterHammer: boosterHammer ?? this.boosterHammer,
+      boosterShuffle: boosterShuffle ?? this.boosterShuffle,
     );
   }
 }
