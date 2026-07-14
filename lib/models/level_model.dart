@@ -21,7 +21,7 @@ class GoalTarget {
 
   /// For 'jelly' goals: number of jelly blockers to clear.
   final int? jellyCount;
-
+//
   /// For 'ingredient' goals: number of ingredients to drop.
   final int? ingredientCount;
 
