@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:choco_blast_adventure/core/theme/app_colors.dart';
 import 'package:choco_blast_adventure/core/theme/app_text_styles.dart';
 import 'package:choco_blast_adventure/providers/profile_provider.dart';
+import 'package:choco_blast_adventure/services/audio_service.dart';
 
 /// Professional shop screen — card grid with glass-morphism and coin purchasing.
 class ShopScreen extends ConsumerWidget {
@@ -182,6 +183,7 @@ class ShopScreen extends ConsumerWidget {
           // Buy button
           GestureDetector(
             onTap: () async {
+              AudioService.instance.playButton();
               final profileNotifier = ref.read(profileProvider.notifier);
               final success = await profileNotifier.buyBooster(b.type, b.cost);
               if (success) {

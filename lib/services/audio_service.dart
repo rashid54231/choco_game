@@ -18,12 +18,21 @@ class AudioService {
   Future<void> init() async {
     await _musicPlayer.setReleaseMode(ReleaseMode.loop);
     await _sfxPlayer.setReleaseMode(ReleaseMode.release);
+    // Auto-start background music
+    playBackgroundMusic();
+  }
+
+  String _formatAssetPath(String path) {
+    if (path.startsWith('assets/')) {
+      return path.substring('assets/'.length);
+    }
+    return path;
   }
 
   Future<void> playBackgroundMusic() async {
     if (!musicEnabled) return;
     try {
-      await _musicPlayer.play(AssetSource(AssetPaths.bgMusic));
+      await _musicPlayer.play(AssetSource(_formatAssetPath(AssetPaths.bgMusic)));
     } catch (e) {
       if (kDebugMode) debugPrint('bg music unavailable: $e');
     }
@@ -38,7 +47,7 @@ class AudioService {
   Future<void> _playSfx(String path) async {
     if (!sfxEnabled) return;
     try {
-      await _sfxPlayer.play(AssetSource(path));
+      await _sfxPlayer.play(AssetSource(_formatAssetPath(path)));
     } catch (e) {
       if (kDebugMode) debugPrint('sfx unavailable: $e');
     }

@@ -6,12 +6,12 @@
 /// [AudioService] gracefully no-ops.
 class AssetPaths {
   // Audio
-  static const String bgMusic = 'assets/audio/bg_music.mp3';
-  static const String sfxMatch = 'assets/audio/match.mp3';
-  static const String sfxSwap = 'assets/audio/swap.mp3';
-  static const String sfxInvalid = 'assets/audio/invalid.mp3';
-  static const String sfxSpecial = 'assets/audio/special.mp3';
-  static const String sfxButton = 'assets/audio/button.mp3';
+  static const String bgMusic = 'assets/audio/bg_music.wav';
+  static const String sfxMatch = 'assets/audio/match.wav';
+  static const String sfxSwap = 'assets/audio/swap.wav';
+  static const String sfxInvalid = 'assets/audio/invalid.wav';
+  static const String sfxSpecial = 'assets/audio/special.wav';
+  static const String sfxButton = 'assets/audio/button.wav';
 
   // Decorative images (optional)
   static const String splashLogo = 'assets/images/logo.png';

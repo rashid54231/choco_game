@@ -10,6 +10,7 @@ import 'package:choco_blast_adventure/models/level_model.dart';
 import 'package:choco_blast_adventure/models/tile_model.dart';
 import 'package:choco_blast_adventure/providers/board_provider.dart';
 import 'package:choco_blast_adventure/providers/profile_provider.dart';
+import 'package:choco_blast_adventure/providers/game_state_provider.dart';
 import 'package:choco_blast_adventure/services/audio_service.dart';
 import 'package:choco_blast_adventure/widgets/board/bomb_blast_overlay.dart';
 import 'package:choco_blast_adventure/widgets/board/tile_widget.dart';
@@ -72,7 +73,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
               itemBuilder: (context, index) {
                 final r = index ~/ cols;
                 final c = index % cols;
-                return _buildCell(game.isHammerMode, game.board[r][c], r, c, anim.stateFor(r, c));
+                return _buildCell(game.activeBooster, game.board[r][c], r, c, anim.stateFor(r, c));
               },
             ),
           ),
@@ -119,7 +120,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     }
   }
 
-  Widget _buildCell(bool isHammerMode, Tile tile, int r, int c, CellAnimState a) {
+  Widget _buildCell(ActiveBooster activeBooster, Tile tile, int r, int c, CellAnimState a) {
     // MATCHED: flash glow
     if (a.phase == CellAnimPhase.matched) {
       return GestureDetector(
@@ -211,10 +212,13 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
     // IDLE
     return GestureDetector(
-      onTap: isHammerMode
-          ? () => _tapHammer(isHammerMode, r, c)
+      onTap: activeBooster == ActiveBooster.hammer
+          ? () => _tapHammer(r, c)
           : (tile.isSpecial ? () => _tapSpecial(r, c) : null),
-      onPanStart: (d) { _dragStartR = r; _dragStartC = c; _panStart = d.localPosition; },
+      onPanStart: (d) { 
+        AudioService.instance.playButton();
+        _dragStartR = r; _dragStartC = c; _panStart = d.localPosition; 
+      },
       onPanUpdate: (d) { _panEnd = d.localPosition; },
       onPanEnd: (d) => _handlePanEnd(),
       child: AnimatedSwitcher(
@@ -260,7 +264,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     _panEnd = null;
   }
 
-  void _tapHammer(bool isHammerMode, int r, int c) async {
+  void _tapHammer(int r, int c) async {
     if (_busy) return;
     setState(() => _busy = true);
     final notifier = ref.read(boardProvider(widget.level).notifier);
@@ -269,7 +273,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     // Attempt to consume 1 hammer booster
     final success = await profileNotifier.consumeBooster('hammer');
     if (success) {
-      await notifier.useHammerBooster(r, c);
+      await notifier.applyHammer(r, c);
       if (!mounted) { setState(() => _busy = false); return; }
       final game = ref.read(boardProvider(widget.level));
       if (!game.isComplete && !game.isFailed) {
@@ -281,7 +285,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Out of Hammers! Buy more in the shop.')),
         );
-        notifier.toggleHammerMode(); // Turn off hammer mode since we didn't have any
+        notifier.setActiveBooster(ActiveBooster.none);
       }
     }
     setState(() => _busy = false);
@@ -308,6 +312,25 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     HapticFeedback.lightImpact();
     AudioService.instance.playSwap();
     final notifier = ref.read(boardProvider(widget.level).notifier);
+    final profileNotifier = ref.read(profileProvider.notifier);
+    
+    if (notifier.snapshot.activeBooster == ActiveBooster.freeSwitch) {
+      final success = await profileNotifier.consumeBooster('shuffle'); // Using shuffle as fallback if we don't have free_switch in DB
+      if (success) {
+        await notifier.applyFreeSwitch(r1, c1, r2, c2);
+        if (!mounted) { setState(() => _busy = false); return; }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Out of Free Switches! Buy more in the shop.')),
+          );
+          notifier.setActiveBooster(ActiveBooster.none);
+        }
+      }
+      setState(() => _busy = false);
+      return;
+    }
+    
     final valid = await notifier.attemptSwap(r1, c1, r2, c2);
     if (!mounted) { setState(() => _busy = false); return; }
     if (!valid) {

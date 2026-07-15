@@ -8,7 +8,10 @@ import 'package:choco_blast_adventure/models/level_model.dart';
 import 'package:choco_blast_adventure/providers/profile_provider.dart';
 import 'package:choco_blast_adventure/screens/gameplay/gameplay_screen.dart';
 import 'package:choco_blast_adventure/screens/home/home_screen.dart';
+import 'package:choco_blast_adventure/services/audio_service.dart';
 import 'package:choco_blast_adventure/services/cache_service.dart';
+import 'package:choco_blast_adventure/services/lives_service.dart';
+import 'dart:async';
 
 /// Professional level map — dark cosmic theme with glowing path and milestone markers.
 class LevelMapScreen extends ConsumerStatefulWidget {
@@ -99,7 +102,10 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
               bottom: 70,
               right: 16,
               child: GestureDetector(
-                onTap: _levelUp,
+                onTap: () {
+                  AudioService.instance.playButton();
+                  _levelUp();
+                },
                 child: Container(
                   width: 56,
                   height: 56,
@@ -176,7 +182,7 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
       child: Row(
         children: [
           // Hearts
-          _heartBadge(),
+          const _HeartBadge(),
           const SizedBox(width: 8),
           // Coins
           Container(
@@ -263,27 +269,6 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
     );
   }
 
-  Widget _heartBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.error.withOpacity(0.3), AppColors.error.withOpacity(0.1)],
-        ),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.error.withOpacity(0.3), width: 1),
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.favorite, color: Color(0xFFFF5252), size: 16),
-          SizedBox(width: 4),
-          Text('5', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-        ],
-      ),
-    );
-  }
-
   Widget _buildPath() {
     final levelCount = 50;
     final pathPoints = <Offset>[];
@@ -336,7 +321,10 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
       left: pos.dx - nodeSize / 2,
       top: pos.dy - (nodeSize / 2) - (pillH - pillOffset),
       child: GestureDetector(
-        onTap: isUnlocked ? () => _playLevel(level) : null,
+        onTap: isUnlocked ? () {
+          AudioService.instance.playButton();
+          _playLevel(level);
+        } : null,
         child: SizedBox(
           width: nodeSize,
           height: totalH,
@@ -523,7 +511,10 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
   Widget _tabItem(IconData icon, String label, int index) {
     final active = _selectedTab == index;
     return GestureDetector(
-      onTap: () => setState(() => _selectedTab = index),
+      onTap: () {
+        AudioService.instance.playButton();
+        setState(() => _selectedTab = index);
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -663,4 +654,65 @@ class _PathPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_PathPainter oldDelegate) => false;
+}
+
+class _HeartBadge extends ConsumerStatefulWidget {
+  const _HeartBadge();
+  @override
+  ConsumerState<_HeartBadge> createState() => _HeartBadgeState();
+}
+
+class _HeartBadgeState extends ConsumerState<_HeartBadge> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final profile = ref.watch(profileProvider);
+    final lives = profile?.lives ?? 5;
+    String timerText = '';
+    
+    if (profile != null && lives < 5 && !profile.isPremium) {
+      final rem = LivesService.instance.timeUntilNextLife(profile);
+      if (rem.inSeconds <= 0) {
+        ref.read(profileProvider.notifier).refreshLives();
+      } else {
+        final m = rem.inMinutes.toString().padLeft(2, '0');
+        final s = (rem.inSeconds % 60).toString().padLeft(2, '0');
+        timerText = ' $m:$s';
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.error.withOpacity(0.3), AppColors.error.withOpacity(0.1)],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.error.withOpacity(0.3), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.favorite, color: Color(0xFFFF5252), size: 16),
+          const SizedBox(width: 4),
+          Text('$lives$timerText', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+        ],
+      ),
+    );
+  }
 }

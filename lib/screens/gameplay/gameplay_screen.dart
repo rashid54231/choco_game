@@ -12,6 +12,7 @@ import 'package:choco_blast_adventure/screens/level_result/level_complete_screen
 import 'package:choco_blast_adventure/screens/level_result/level_failed_screen.dart';
 import 'package:choco_blast_adventure/screens/home/home_screen.dart';
 import 'package:choco_blast_adventure/screens/level_map/level_map_screen.dart';
+import 'package:choco_blast_adventure/services/audio_service.dart';
 import 'package:choco_blast_adventure/widgets/board/combo_counter.dart';
 import 'package:choco_blast_adventure/widgets/board/game_board.dart';
 
@@ -212,7 +213,10 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
           children: [
             // Pause
             GestureDetector(
-              onTap: _showPause,
+              onTap: () {
+                AudioService.instance.playButton();
+                _showPause();
+              },
               child: Container(
                 width: 36,
                 height: 36,
@@ -502,7 +506,7 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Column(
         children: [
-          if (game.isHammerMode)
+          if (game.activeBooster == ActiveBooster.hammer)
             Container(
               margin: const EdgeInsets.only(bottom: 6),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -523,6 +527,27 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                 ],
               ),
             ),
+          if (game.activeBooster == ActiveBooster.freeSwitch)
+            Container(
+              margin: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF42A5F5).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF42A5F5).withOpacity(0.5)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.swipe_rounded, color: Color(0xFF42A5F5), size: 16),
+                  SizedBox(width: 8),
+                  Text(
+                    'Free Switch: Drag any two adjacent tiles',
+                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600, fontFamily: 'Baloo2'),
+                  ),
+                ],
+              ),
+            ),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
             decoration: BoxDecoration(
@@ -530,68 +555,78 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _booster(
-                  Icons.add_road_rounded,
-                  'Moves\n($extraMovesCount)',
-                  extraMovesCount > 0,
-                  () async {
-                    if (extraMovesCount <= 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Out of Extra Moves! Buy more in the shop.')));
-                      return;
-                    }
-                    final success = await profileNotifier.consumeBooster('extra_moves');
-                    if (success) {
-                      boardNotifier.useExtraMovesBooster();
-                    }
-                  },
-                ),
-                _booster(
-                  Icons.auto_awesome_rounded,
-                  'Bomb\n($colorBombCount)',
-                  colorBombCount > 0,
-                  () async {
-                    if (colorBombCount <= 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Out of Color Bombs! Buy more in the shop.')));
-                      return;
-                    }
-                    final success = await profileNotifier.consumeBooster('color_bomb');
-                    if (success) {
-                      boardNotifier.useColorBombBooster();
-                    }
-                  },
-                ),
-                _booster(
-                  Icons.gpp_maybe_rounded,
-                  'Hammer\n($hammerCount)',
-                  hammerCount > 0 || game.isHammerMode,
-                  () {
-                    if (hammerCount <= 0 && !game.isHammerMode) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Out of Hammers! Buy more in the shop.')));
-                      return;
-                    }
-                    boardNotifier.toggleHammerMode();
-                  },
-                  highlighted: game.isHammerMode,
-                ),
-                _booster(
-                  Icons.shuffle_rounded,
-                  'Shuffle\n($shuffleCount)',
-                  shuffleCount > 0,
-                  () async {
-                    if (shuffleCount <= 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Out of Shuffles! Buy more in the shop.')));
-                      return;
-                    }
-                    final success = await profileNotifier.consumeBooster('shuffle');
-                    if (success) {
-                      boardNotifier.reshuffle();
-                    }
-                  },
-                ),
-              ],
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _booster(
+                    Icons.add_road_rounded,
+                    'Moves\n($extraMovesCount)',
+                    extraMovesCount > 0,
+                    () async {
+                      if (extraMovesCount <= 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Out of Extra Moves! Buy more in the shop.')));
+                        return;
+                      }
+                      final success = await profileNotifier.consumeBooster('extra_moves');
+                      if (success) {
+                        boardNotifier.useExtraMovesBooster();
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  _booster(
+                    Icons.auto_awesome_rounded,
+                    'Bomb\n($colorBombCount)',
+                    colorBombCount > 0,
+                    () async {
+                      if (colorBombCount <= 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Out of Color Bombs! Buy more in the shop.')));
+                        return;
+                      }
+                      final success = await profileNotifier.consumeBooster('color_bomb');
+                      if (success) {
+                        boardNotifier.useColorBombBooster();
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  _booster(
+                    Icons.gpp_maybe_rounded,
+                    'Hammer\n($hammerCount)',
+                    hammerCount > 0 || game.activeBooster == ActiveBooster.hammer,
+                    () {
+                      if (hammerCount <= 0 && game.activeBooster != ActiveBooster.hammer) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Out of Hammers! Buy more in the shop.')));
+                        return;
+                      }
+                      boardNotifier.setActiveBooster(
+                        game.activeBooster == ActiveBooster.hammer ? ActiveBooster.none : ActiveBooster.hammer,
+                      );
+                    },
+                    highlighted: game.activeBooster == ActiveBooster.hammer,
+                  ),
+                  const SizedBox(width: 12),
+                  // Free Switch Booster
+                  // For now, let's use boosterShuffle count until we migrate db or just rename shuffle to switch
+                  _booster(
+                    Icons.swipe_rounded,
+                    'Switch\n($shuffleCount)',
+                    shuffleCount > 0 || game.activeBooster == ActiveBooster.freeSwitch,
+                    () {
+                      if (shuffleCount <= 0 && game.activeBooster != ActiveBooster.freeSwitch) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Out of Free Switches! Buy more in the shop.')));
+                        return;
+                      }
+                      boardNotifier.setActiveBooster(
+                        game.activeBooster == ActiveBooster.freeSwitch ? ActiveBooster.none : ActiveBooster.freeSwitch,
+                      );
+                    },
+                    highlighted: game.activeBooster == ActiveBooster.freeSwitch,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -601,7 +636,12 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
 
   Widget _booster(IconData icon, String label, bool enabled, VoidCallback? onTap, {bool highlighted = false}) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        if (onTap != null) {
+          AudioService.instance.playButton();
+          onTap();
+        }
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -733,7 +773,10 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
 
   Widget _pauseBtn(IconData icon, String label, Color color, VoidCallback onTap) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        AudioService.instance.playButton();
+        onTap();
+      },
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 16),

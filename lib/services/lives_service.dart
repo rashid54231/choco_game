@@ -46,17 +46,25 @@ class LivesService {
   Future<UserProfile> spendLife(UserProfile profile) async {
     final refreshed = await refreshLives(profile);
     if (refreshed.isPremium) return refreshed;
+    
     final newLives = (refreshed.lives - 1).clamp(0, GameConstants.maxLives);
-    final updated = refreshed.copyWith(lives: newLives);
-    await _client.from('profiles').update({'lives': newLives}).eq('id', profile.id);
+    // If we were at max lives, our regen timer starts NOW.
+    final newRegen = refreshed.lives >= GameConstants.maxLives ? DateTime.now() : refreshed.lastLifeRegen;
+    
+    final updated = refreshed.copyWith(lives: newLives, lastLifeRegen: newRegen);
+    await _client.from('profiles').update({
+      'lives': newLives,
+      'last_life_regen': newRegen.toIso8601String()
+    }).eq('id', profile.id);
     return updated;
   }
 
-  /// Minutes until the next life regenerates (for the UI countdown).
-  int minutesUntilNextLife(UserProfile profile) {
-    if (profile.isPremium || profile.lives >= GameConstants.maxLives) return 0;
-    final elapsed = DateTime.now().difference(profile.lastLifeRegen).inMinutes;
-    final rem = GameConstants.lifeRegenMinutes - (elapsed % GameConstants.lifeRegenMinutes);
-    return rem;
+  /// Duration until the next life regenerates (for the UI countdown).
+  Duration timeUntilNextLife(UserProfile profile) {
+    if (profile.isPremium || profile.lives >= GameConstants.maxLives) return Duration.zero;
+    final elapsed = DateTime.now().difference(profile.lastLifeRegen);
+    final totalSecs = GameConstants.lifeRegenMinutes * 60;
+    final remSecs = totalSecs - (elapsed.inSeconds % totalSecs);
+    return Duration(seconds: remSecs);
   }
 }

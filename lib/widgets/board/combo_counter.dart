@@ -22,14 +22,28 @@ class ComboCounter extends StatelessWidget {
         : combo >= 3
             ? const Color(0xFFFF9100)
             : const Color(0xFFFFD600);
+            
+    String text;
+    if (combo >= 6) {
+      text = 'Divine!\nx$combo';
+    } else if (combo >= 4) {
+      text = 'Tasty!\nx$combo';
+    } else if (combo >= 3) {
+      text = 'Sweet!\nx$combo';
+    } else {
+      text = 'x$combo';
+    }
 
     return Center(
       child: Text(
-        'x$combo',
+        text,
+        textAlign: TextAlign.center,
         key: ValueKey('combo_$combo'),
         style: TextStyle(
-          fontSize: 56,
+          fontSize: combo >= 4 ? 64 : 56,
           fontWeight: FontWeight.w900,
+          fontFamily: 'Baloo2',
+          height: 1.1,
           color: color,
           shadows: [
             Shadow(color: Colors.black.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 3)),

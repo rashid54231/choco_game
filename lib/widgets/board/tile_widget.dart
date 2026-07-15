@@ -23,19 +23,50 @@ class TileWidget extends StatelessWidget {
     if (tile.isEmpty) {
       return SizedBox(width: size, height: size);
     }
-    final isSpecial = tile.isSpecial;
-    return SizedBox(
-      width: size,
-      height: size,
-      child: CustomPaint(
+    
+    Widget content;
+    if (tile.blocker == BlockerType.chocolate) {
+      content = Container(
+        width: size, height: size,
+        decoration: BoxDecoration(
+          color: Colors.brown[700],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.brown[900]!, width: 2),
+        ),
+        child: Center(child: Icon(Icons.apps, color: Colors.brown[900], size: size * 0.5)),
+      );
+    } else {
+      content = CustomPaint(
         painter: TileShapePainter(
           type: tile.type!,
           special: tile.special,
           stripedOrientation: tile.stripedOrientation,
-          glow: isSpecial ? 1.0 : 0,
+          glow: tile.isSpecial ? 1.0 : 0,
         ),
         child: const SizedBox.expand(),
-      ),
+      );
+      
+      if (tile.blocker == BlockerType.ice) {
+        content = Stack(
+          children: [
+            content,
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.4 + (tile.iceLayers * 0.1).clamp(0.0, 0.5)),
+                border: Border.all(color: Colors.lightBlueAccent, width: 2),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ],
+        );
+      }
+    }
+
+    final isSpecial = tile.isSpecial;
+    return SizedBox(
+      width: size,
+      height: size,
+      child: content,
     )
         .animate(onPlay: (c) => c.repeat(reverse: true))
         .scale(

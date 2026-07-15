@@ -16,6 +16,7 @@ class UserProfile {
   final int boosterColorBomb;
   final int boosterHammer;
   final int boosterShuffle;
+  final DateTime? lastDailyReward;
 
   const UserProfile({
     required this.id,
@@ -32,6 +33,7 @@ class UserProfile {
     required this.boosterColorBomb,
     required this.boosterHammer,
     required this.boosterShuffle,
+    this.lastDailyReward,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -52,6 +54,7 @@ class UserProfile {
       boosterColorBomb: json['booster_color_bomb'] as int? ?? 2,
       boosterHammer: json['booster_hammer'] as int? ?? 2,
       boosterShuffle: json['booster_shuffle'] as int? ?? 3,
+      lastDailyReward: json['last_daily_reward'] != null ? DateTime.parse(json['last_daily_reward'] as String) : null,
     );
   }
 
@@ -69,6 +72,7 @@ class UserProfile {
         'booster_color_bomb': boosterColorBomb,
         'booster_hammer': boosterHammer,
         'booster_shuffle': boosterShuffle,
+        'last_daily_reward': lastDailyReward?.toIso8601String(),
       };
 
   UserProfile copyWith({
@@ -84,6 +88,7 @@ class UserProfile {
     int? boosterColorBomb,
     int? boosterHammer,
     int? boosterShuffle,
+    DateTime? lastDailyReward,
   }) {
     return UserProfile(
       id: id,
@@ -100,6 +105,7 @@ class UserProfile {
       boosterColorBomb: boosterColorBomb ?? this.boosterColorBomb,
       boosterHammer: boosterHammer ?? this.boosterHammer,
       boosterShuffle: boosterShuffle ?? this.boosterShuffle,
+      lastDailyReward: lastDailyReward ?? this.lastDailyReward,
     );
   }
 }

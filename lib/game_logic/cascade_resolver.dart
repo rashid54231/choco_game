@@ -71,6 +71,7 @@ class CascadeResolver {
     final steps = <CascadeStep>[];
     final clearedTypes = <TileType>{};
     int cascadeIndex = 0;
+    bool brokeChocolateThisTurn = false;
 
     while (true) {
       final match = MatchDetector.findMatches(current);
@@ -101,6 +102,48 @@ class CascadeResolver {
         if (t != null) clearedTypes.add(t);
       }
 
+      // Find adjacent cells to the clearSet (for breaking chocolate)
+      final adjacentToClear = <Cell>{};
+      for (final cell in clearSet) {
+        for (int dr = -1; dr <= 1; dr++) {
+          for (int dc = -1; dc <= 1; dc++) {
+            if ((dr == 0) ^ (dc == 0)) {
+              final r = cell.r + dr, c = cell.c + dc;
+              if (BoardHelper.inBounds(current, r, c)) {
+                adjacentToClear.add(Cell(r, c));
+              }
+            }
+          }
+        }
+      }
+
+      // Track if we broke any chocolate this turn
+      bool brokeChocolate = false;
+      
+      // Damage blockers in clearSet and adjacent cells
+      final finalClearSet = <Cell>{};
+      for (final cell in clearSet) {
+        final t = current[cell.r][cell.c];
+        if (t.blocker == BlockerType.ice) {
+          // Break ice, keep the tile
+          current[cell.r][cell.c] = t.copyWith(
+            iceLayers: t.iceLayers - 1,
+            blocker: t.iceLayers - 1 <= 0 ? BlockerType.none : BlockerType.ice,
+          );
+        } else {
+          finalClearSet.add(cell);
+        }
+      }
+      
+      for (final cell in adjacentToClear) {
+        final t = current[cell.r][cell.c];
+        if (t.blocker == BlockerType.chocolate) {
+          current[cell.r][cell.c] = const Tile.empty();
+          brokeChocolate = true;
+          // Don't add to finalClearSet because it's already empty, but we broke it
+        }
+      }
+
       // Snapshot the board just before we mutate it (for animation).
       final boardBefore = BoardHelper.clone(current);
 
@@ -108,7 +151,7 @@ class CascadeResolver {
       final specialCells = {for (final s in match.specials) s.cell};
 
       // Remove cleared tiles (except those becoming new specials).
-      for (final cell in clearSet) {
+      for (final cell in finalClearSet) {
         if (specialCells.contains(cell)) continue;
         current[cell.r][cell.c] = const Tile.empty();
       }
@@ -134,7 +177,7 @@ class CascadeResolver {
       steps.add(CascadeStep(
         cascadeIndex: cascadeIndex,
         boardBefore: boardBefore,
-        clearedCells: clearSet,
+        clearedCells: finalClearSet,
         activations: activations,
         boardAfter: afterRefill,
         fallDistances: fallMap,
@@ -142,7 +185,64 @@ class CascadeResolver {
       ));
 
       current = afterRefill;
+      
+      // Chocolate expansion logic (only grows if no chocolate was broken this cascade sequence AND it's the end of a cascade sequence)
+      // Actually, chocolate usually grows after the ENTIRE cascade is done (no more matches).
+      // We will handle that outside this loop if needed, but for simplicity, let's just do it at the very end of resolve().
+      
+      if (brokeChocolate) {
+        brokeChocolateThisTurn = true;
+      }
+      
       cascadeIndex++;
+    }
+    
+    // Chocolate expansion (if the board is stable and we didn't clear any chocolate this move)
+    if (!brokeChocolateThisTurn) {
+      final chocolateCells = <Cell>[];
+      for (int r = 0; r < BoardHelper.rows(current); r++) {
+        for (int c = 0; c < BoardHelper.cols(current); c++) {
+          if (current[r][c].blocker == BlockerType.chocolate) {
+            chocolateCells.add(Cell(r, c));
+          }
+        }
+      }
+      
+      if (chocolateCells.isNotEmpty) {
+        // Try to find a valid expansion spot
+        chocolateCells.shuffle(_random);
+        bool grew = false;
+        for (final cell in chocolateCells) {
+          final neighbors = <Cell>[
+            Cell(cell.r - 1, cell.c),
+            Cell(cell.r + 1, cell.c),
+            Cell(cell.r, cell.c - 1),
+            Cell(cell.r, cell.c + 1),
+          ];
+          neighbors.shuffle(_random);
+          for (final n in neighbors) {
+            if (BoardHelper.inBounds(current, n.r, n.c)) {
+              final t = current[n.r][n.c];
+              if (t.blocker == BlockerType.none && !t.isSpecial) {
+                // Grow chocolate here
+                final boardBefore = BoardHelper.clone(current);
+                current[n.r][n.c] = const Tile.empty().copyWith(blocker: BlockerType.chocolate);
+                
+                steps.add(CascadeStep(
+                  cascadeIndex: cascadeIndex,
+                  boardBefore: boardBefore,
+                  clearedCells: {},
+                  activations: [],
+                  boardAfter: current,
+                ));
+                grew = true;
+                break;
+              }
+            }
+          }
+          if (grew) break;
+        }
+      }
     }
 
     int total = 0;
@@ -220,9 +320,15 @@ class CascadeResolver {
     for (int c = 0; c < cols; c++) {
       int emptyCount = 0;
       for (int r = rows - 1; r >= 0; r--) {
-        if (board[r][c].isEmpty) {
+        if (board[r][c].blocker != BlockerType.none) {
+           // Blockers block things above from falling through them? 
+           // In most games, tiles fall *through* empty spaces below blockers, 
+           // but the blocker itself doesn't fall.
+           // For simplicity in fall distance (used just for animation), we just track movable tiles.
+        } else if (board[r][c].isEmpty) {
           emptyCount++;
         } else if (emptyCount > 0) {
+          // Only movable tiles fall
           result[Cell(r + emptyCount, c)] = emptyCount;
         }
       }
@@ -265,13 +371,35 @@ class CascadeResolver {
     for (int c = 0; c < cols; c++) {
       final columnTiles = <Tile>[];
       for (int r = rows - 1; r >= 0; r--) {
-        if (!board[r][c].isEmpty) columnTiles.add(board[r][c]);
+        // Blockers like ice/chocolate prevent gravity from dropping them.
+        // Wait, ice tiles CANNOT fall. If a tile has ice, it stays in place.
+        if (board[r][c].blocker == BlockerType.ice) {
+          // It's stuck. 
+          columnTiles.add(board[r][c]);
+        } else if (board[r][c].blocker == BlockerType.chocolate) {
+          // Chocolate stays in place.
+          columnTiles.add(board[r][c]);
+        } else if (!board[r][c].isEmpty) {
+          columnTiles.add(board[r][c]);
+        }
       }
-      // columnTiles[0] is bottom-most existing tile.
       int writeR = rows - 1;
-      for (final t in columnTiles) {
-        out[writeR][c] = t;
-        writeR--;
+      // Because blockers cannot move, we must place blockers first, then drop remaining tiles around them.
+      // Actually, a simpler gravity logic is needed when static blockers exist.
+      // Let's implement static blocker gravity:
+      for (int r = rows - 1; r >= 0; r--) {
+        if (board[r][c].blocker != BlockerType.none) {
+          out[r][c] = board[r][c];
+        }
+      }
+      
+      int tileIdx = 0;
+      final movableTiles = columnTiles.where((t) => t.blocker == BlockerType.none).toList();
+      for (int r = rows - 1; r >= 0; r--) {
+        if (out[r][c].isEmpty && tileIdx < movableTiles.length) {
+          out[r][c] = movableTiles[tileIdx];
+          tileIdx++;
+        }
       }
     }
     return out;

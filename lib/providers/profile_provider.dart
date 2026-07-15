@@ -141,6 +141,22 @@ class ProfileNotifier extends StateNotifier<UserProfile?> {
     return true;
   }
 
+  Future<void> claimDailyReward() async {
+    final currentProfile = state;
+    if (currentProfile == null) return;
+    
+    final updated = currentProfile.copyWith(
+      coins: currentProfile.coins + 500,
+      lastDailyReward: DateTime.now(),
+    );
+    
+    set(updated);
+    await CacheService.instance.saveProfile(updated);
+    try {
+      await AuthService.instance.updateProfile(updated);
+    } catch (_) {}
+  }
+
   Future<void> updateUsernameAndAvatar(String username, String avatarUrl) async {
     final currentProfile = state;
     if (currentProfile == null) return;

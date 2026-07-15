@@ -9,7 +9,8 @@ alter table public.profiles
   add column if not exists booster_extra_moves int default 3,
   add column if not exists booster_color_bomb int default 2,
   add column if not exists booster_hammer int default 2,
-  add column if not exists booster_shuffle int default 3;
+  add column if not exists booster_shuffle int default 3,
+  add column if not exists last_daily_reward timestamp with time zone;
 
 -- 2. Seed remaining levels 13 to 30 with incremental difficulty
 insert into public.levels (level_number, grid_size, move_limit, time_limit_seconds, goal_type, goal_target, star_thresholds)

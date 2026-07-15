@@ -10,13 +10,55 @@ import 'package:choco_blast_adventure/screens/level_map/level_map_screen.dart';
 import 'package:choco_blast_adventure/screens/settings/settings_screen.dart';
 import 'package:choco_blast_adventure/models/level_model.dart';
 import 'package:choco_blast_adventure/services/cache_service.dart';
+import 'package:choco_blast_adventure/screens/home/daily_reward_dialog.dart';
+import 'package:choco_blast_adventure/providers/profile_provider.dart';
+import 'package:choco_blast_adventure/services/audio_service.dart';
 
 /// Professional home screen — dark cosmic candy theme with glass-morphism UI.
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkDailyReward();
+    });
+  }
+  
+  void _checkDailyReward() {
+    final profile = ref.read(profileProvider);
+    if (profile == null) return;
+    
+    final lastReward = profile.lastDailyReward;
+    final now = DateTime.now();
+    bool shouldShow = false;
+    
+    if (lastReward == null) {
+      shouldShow = true;
+    } else {
+      // Check if last reward was yesterday or earlier
+      if (now.difference(lastReward).inHours >= 24 || now.day != lastReward.day) {
+        shouldShow = true;
+      }
+    }
+    
+    if (shouldShow) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const DailyRewardDialog(),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final screenW = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -59,7 +101,7 @@ class HomeScreen extends ConsumerWidget {
                     width: screenW * 0.65,
                     height: 60,
                     delay: 500,
-                    onTap: () => _playGame(context, ref),
+                    onTap: () => _playGame(context),
                   ),
                 ),
 
@@ -225,7 +267,10 @@ class HomeScreen extends ConsumerWidget {
     required VoidCallback onTap,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        AudioService.instance.playButton();
+        onTap();
+      },
       child: Container(
         width: width,
         height: height,
@@ -300,9 +345,9 @@ class HomeScreen extends ConsumerWidget {
     });
   }
 
-  void _playGame(BuildContext context, WidgetRef ref) async {
+  void _playGame(BuildContext context) async {
     final nextLevel = await CacheService.instance.getNextLevel();
-    if (!context.mounted) return;
+    if (!mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => GameplayScreen(level: LevelModel.level(nextLevel)),

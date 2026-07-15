@@ -32,6 +32,12 @@ class GoalProgress {
   void addCollected(TileType t, int n) => collected[t] = collectedOf(t) + n;
 }
 
+enum ActiveBooster {
+  none,
+  hammer,
+  freeSwitch,
+}
+
 class GameState {
   final Board board;
   final LevelModel level;
@@ -44,7 +50,7 @@ class GameState {
   final bool isFailed;
   final int stars;
   final BoardAnimState animState;
-  final bool isHammerMode;
+  final ActiveBooster activeBooster;
 
   const GameState({
     required this.board,
@@ -58,7 +64,7 @@ class GameState {
     this.isFailed = false,
     this.stars = 0,
     this.animState = BoardAnimState.idle,
-    this.isHammerMode = false,
+    this.activeBooster = ActiveBooster.none,
   });
 
   GameState copyWith({
@@ -72,7 +78,7 @@ class GameState {
     bool? isFailed,
     int? stars,
     BoardAnimState? animState,
-    bool? isHammerMode,
+    ActiveBooster? activeBooster,
   }) {
     return GameState(
       board: board ?? this.board,
@@ -86,7 +92,7 @@ class GameState {
       isFailed: isFailed ?? this.isFailed,
       stars: stars ?? this.stars,
       animState: animState ?? this.animState,
-      isHammerMode: isHammerMode ?? this.isHammerMode,
+      activeBooster: activeBooster ?? this.activeBooster,
     );
   }
 }
@@ -102,7 +108,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
   GameStateNotifier(LevelModel level)
       : super(GameState(
-          board: BoardGenerator().generate(level.gridSize, level.gridSize),
+          board: BoardGenerator().generate(level.gridSize, level.gridSize, level: level),
           level: level,
           movesLeft: level.moveLimit ?? 0,
           timeLeftSeconds: level.timeLimitSeconds ?? 0,
@@ -117,10 +123,84 @@ class GameStateNotifier extends StateNotifier<GameState> {
     var board = state.board;
     int guard = 0;
     while (!MoveValidator.hasAnyValidMove(board) && guard < 20) {
-      board = _generator.generate(state.level.gridSize, state.level.gridSize);
+      board = _generator.generate(state.level.gridSize, state.level.gridSize, level: state.level);
       guard++;
     }
     state = state.copyWith(board: board);
+  }
+
+  void setActiveBooster(ActiveBooster booster) {
+    state = state.copyWith(activeBooster: booster);
+  }
+
+  Future<bool> applyHammer(int r, int c) async {
+    if (state.isResolving || state.isComplete || state.isFailed || state.activeBooster != ActiveBooster.hammer) return false;
+    
+    var board = BoardHelper.clone(state.board);
+    final tile = board[r][c];
+    
+    // If it's a special tile, we activate it. Otherwise we just remove it / damage blocker
+    Set<Cell>? preActivated;
+    if (tile.isSpecial) {
+      preActivated = {Cell(r, c)};
+    } else {
+      // Just empty it, letting cascade resolver handle gravity if needed.
+      // Or if it's ice/chocolate, we should damage it.
+      if (tile.blocker == BlockerType.ice) {
+        board[r][c] = tile.copyWith(
+          iceLayers: tile.iceLayers - 1,
+          blocker: tile.iceLayers - 1 <= 0 ? BlockerType.none : BlockerType.ice,
+        );
+      } else if (tile.blocker == BlockerType.chocolate) {
+        board[r][c] = const Tile.empty();
+      } else {
+        board[r][c] = const Tile.empty();
+      }
+    }
+    
+    state = state.copyWith(isResolving: true, board: board, activeBooster: ActiveBooster.none);
+    
+    final resolution = _resolver.resolve(state.board, preActivated: preActivated);
+    _pendingResolution = resolution;
+    _pendingSteps = List.from(resolution.steps);
+    
+    _isAnimatingSteps = true;
+    try {
+      await _animateNextStep();
+    } catch (_) {
+      _finishCascade();
+    }
+    return true;
+  }
+
+  Future<bool> applyFreeSwitch(int r1, int c1, int r2, int c2) async {
+    if (state.isResolving || state.isComplete || state.isFailed || state.activeBooster != ActiveBooster.freeSwitch) return false;
+    
+    // Free switch does NOT check for valid match. It just swaps them and triggers cascade if any matches formed.
+    var board = BoardHelper.clone(state.board);
+    final temp = board[r1][c1];
+    board[r1][c1] = board[r2][c2];
+    board[r2][c2] = temp;
+    
+    state = state.copyWith(isResolving: true, board: board, activeBooster: ActiveBooster.none);
+    
+    final resolution = _resolver.resolve(state.board); // resolve any matches that might have formed
+    _pendingResolution = resolution;
+    _pendingSteps = List.from(resolution.steps);
+    
+    if (resolution.steps.isEmpty) {
+      // No matches formed, just finish
+      _finishCascade();
+      return true;
+    }
+    
+    _isAnimatingSteps = true;
+    try {
+      await _animateNextStep();
+    } catch (_) {
+      _finishCascade();
+    }
+    return true;
   }
 
   Future<bool> attemptSwap(int r1, int c1, int r2, int c2) async {
@@ -177,12 +257,14 @@ class GameStateNotifier extends StateNotifier<GameState> {
     await Future.delayed(const Duration(milliseconds: 40));
 
     // Phase 2: Pop (30ms)
+    AudioService.instance.playMatch();
     state = state.copyWith(
       animState: BoardAnimState.pop(step.clearedCells, stepIndex, totalSteps),
     );
     await Future.delayed(const Duration(milliseconds: 30));
 
     // Phase 3: Gravity + board swap (60ms)
+    AudioService.instance.playSwap();
     state = state.copyWith(
       board: step.boardAfter,
       animState: BoardAnimState.fall(step.fallDistances, stepIndex, totalSteps),
@@ -402,70 +484,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     HapticFeedback.heavyImpact();
   }
 
-  void toggleHammerMode() {
-    if (state.isResolving || state.isComplete || state.isFailed) return;
-    state = state.copyWith(isHammerMode: !state.isHammerMode);
-  }
 
-  Future<void> useHammerBooster(int r, int c) async {
-    if (state.isResolving || state.isComplete || state.isFailed) return;
-    if (state.board[r][c].isEmpty) return;
-
-    HapticFeedback.heavyImpact();
-
-    final targetCell = Cell(r, c);
-    final affected = <Cell>{targetCell};
-
-    // Show visual pop/clear effect
-    state = state.copyWith(
-      isResolving: true,
-      isHammerMode: false,
-      animState: BoardAnimState.flash(affected, 0, 1),
-    );
-    await Future.delayed(const Duration(milliseconds: 40));
-    if (!mounted) return;
-
-    state = state.copyWith(
-      animState: BoardAnimState.pop(affected, 0, 1),
-    );
-    await Future.delayed(const Duration(milliseconds: 30));
-    if (!mounted) return;
-
-    var current = BoardHelper.clone(state.board);
-    current[r][c] = const Tile.empty();
-    current = _resolver.applyGravity(current);
-    current = _resolver.refill(current);
-
-    final resolution = _resolver.resolve(current);
-    _pendingResolution = resolution;
-    _pendingSteps = List.from(resolution.steps);
-
-    // Score for the hammered tile
-    final gained = GameConstants.baseTileScore +
-        _scoring.scoreForResolution(resolution) +
-        _scoring.scoreForActivations(resolution);
-
-    final oldGoal = state.goal;
-    final goal = GoalProgress(
-      score: oldGoal.score + gained,
-      collected: Map.from(oldGoal.collected),
-    );
-    final t = state.board[r][c].type;
-    if (t != null) goal.addCollected(t, 1);
-
-    for (final t in resolution.clearedTypes) {
-      goal.addCollected(t, _countTypeInResolution(resolution, t));
-    }
-
-    state = state.copyWith(goal: goal);
-
-    _isAnimatingSteps = true;
-    try {
-      await _animateNextStep();
-    } catch (_) {
-      _finishCascade();
-    }
-  }
 
   /// Tap on a special tile to activate it directly — SUPER POWERFUL.
   /// Blasts: same-colored tiles + full row + full column.
