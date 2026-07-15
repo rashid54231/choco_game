@@ -204,7 +204,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           curve: Curves.easeOutBack,
           builder: (_, o, __) => Transform.translate(
             offset: o,
-            child: tile.isEmpty ? const SizedBox.shrink() : TileWidget(tile: tile, size: cellSize),
+            child: tile.isEmpty ? const SizedBox.shrink() : TileWidget(tile: tile, size: cellSize, row: r, col: c),
           ),
         ),
       );
@@ -228,7 +228,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
         transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: FadeTransition(opacity: anim, child: child)),
         child: tile.isEmpty
             ? const SizedBox.shrink(key: ValueKey('empty'))
-            : TileWidget(key: ValueKey('${tile.type}-${tile.special}-$r-$c'), tile: tile, size: cellSize),
+            : TileWidget(key: ValueKey('${tile.type}-${tile.special}-$r-$c'), tile: tile, size: cellSize, row: r, col: c),
       ),
     );
   }

@@ -10,12 +10,16 @@ class TileWidget extends StatelessWidget {
   final Tile tile;
   final double size;
   final bool interactive;
+  final int row;
+  final int col;
 
   const TileWidget({
     super.key,
     required this.tile,
     required this.size,
     this.interactive = true,
+    this.row = 0,
+    this.col = 0,
   });
 
   @override
@@ -62,18 +66,20 @@ class TileWidget extends StatelessWidget {
       }
     }
 
-    final isSpecial = tile.isSpecial;
+    final baseDuration = 3500 + ((row * 100) + (col * 150)) % 1500; // 3.5-5s based on row/col
+    final delay = ((row * 150) + (col * 100)).ms; // stagger start
+
     return SizedBox(
       width: size,
       height: size,
       child: content,
     )
-        .animate(onPlay: (c) => c.repeat(reverse: true))
-        .scale(
-          duration: isSpecial ? 800.ms : 1500.ms,
-          begin: const Offset(0.97, 0.97),
-          end: isSpecial ? const Offset(1.08, 1.08) : const Offset(1.0, 1.0),
-          curve: Curves.easeInOut,
+        .animate(onPlay: (c) => c.repeat(reverse: true), delay: delay)
+        .move(
+          begin: const Offset(0, -5),
+          end: const Offset(0, 5),
+          duration: baseDuration.ms,
+          curve: Curves.easeInOutSine,
         );
   }
 }

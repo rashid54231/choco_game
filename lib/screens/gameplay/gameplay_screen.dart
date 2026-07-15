@@ -226,6 +226,11 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                   border: Border.all(color: Colors.white.withOpacity(0.25), width: 1),
                 ),
                 child: const Icon(Icons.pause_rounded, color: Colors.white, size: 18),
+              ).animate(onPlay: (c) => c.repeat(reverse: true)).boxShadow(
+                begin: BoxShadow(color: Colors.white.withOpacity(0.0), blurRadius: 0),
+                end: BoxShadow(color: Colors.white.withOpacity(0.4), blurRadius: 10, spreadRadius: 2),
+                duration: 3200.ms,
+                curve: Curves.easeInOut,
               ),
             ),
             const SizedBox(width: 10),
@@ -301,6 +306,11 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
             ),
           ],
         ),
+      ).animate(onPlay: (c) => c.loop()).shimmer(
+        duration: 2500.ms,
+        delay: 3500.ms,
+        color: Colors.white.withOpacity(0.15),
+        blendMode: BlendMode.srcATop,
       ),
     );
   }
@@ -433,7 +443,8 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                           colors: [goalColor.withOpacity(0.8), goalColor],
                         ),
                       ),
-                    ),
+                    ).animate(onPlay: (c) => c.repeat(reverse: true))
+                     .tint(color: Colors.white, end: 0.35, duration: 3000.ms, curve: Curves.easeInOut),
                   ),
                   // Star thresholds as markers
                   Positioned(
