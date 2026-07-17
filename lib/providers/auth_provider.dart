@@ -48,3 +48,4 @@ class AuthNotifier extends StateNotifier<UserProfile?> {
 
 /// True while an auth/network operation is in flight.
 final authLoadingProvider = StateProvider<bool>((ref) => false);
+// true
