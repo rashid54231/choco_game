@@ -129,7 +129,7 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1A0533), Color(0xFF0D0221), Color(0xFF0A0118)],
+            colors: [Color(0xFFFFA07A), Color(0xFFFF7E5F), Color(0xFFFEB47B)],
           ),
         ),
         child: Stack(
@@ -152,14 +152,8 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                           Container(
                             padding: const EdgeInsets.all(5),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF150B35),
+                              color: Colors.black.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(24),
-                              border: Border.all(color: const Color(0xFF3A2570).withOpacity(0.5), width: 1.5),
-                              boxShadow: [
-                                BoxShadow(color: const Color(0xFFAB47BC).withOpacity(0.15), blurRadius: 40, spreadRadius: 8),
-                                BoxShadow(color: const Color(0xFFFF6B9D).withOpacity(0.1), blurRadius: 25, spreadRadius: 3),
-                                BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 8)),
-                              ],
                             ),
                             child: GameBoard(level: widget.level, boardSize: boardSize),
                           ),
@@ -809,69 +803,7 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
   }
 
   List<Widget> _buildBackgroundDecorations() {
-    return [
-      // Soft background glowing spheres
-      Positioned(
-        top: 100,
-        left: -40,
-        child: Container(
-          width: 150,
-          height: 150,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [const Color(0xFFAB47BC).withOpacity(0.12), Colors.transparent],
-            ),
-          ),
-        ),
-      ),
-      Positioned(
-        bottom: 120,
-        right: -30,
-        child: Container(
-          width: 180,
-          height: 180,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [const Color(0xFFFF6B9D).withOpacity(0.1), Colors.transparent],
-            ),
-          ),
-        ),
-      ),
-      Positioned(
-        top: 350,
-        right: -50,
-        child: Container(
-          width: 140,
-          height: 140,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [const Color(0xFF42A5F5).withOpacity(0.08), Colors.transparent],
-            ),
-          ),
-        ),
-      ),
-      // Sparkling background stars
-      for (int i = 0; i < 20; i++)
-        Positioned(
-          left: (i * 37) % MediaQuery.of(context).size.width,
-          top: (i * 59) % MediaQuery.of(context).size.height,
-          child: Container(
-            width: (i % 2 == 0) ? 2 : 3,
-            height: (i % 2 == 0) ? 2 : 3,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.15 + (i % 5) * 0.08),
-            ),
-          ).animate(
-            onPlay: (c) => c.repeat(reverse: true),
-          ).fadeOut(
-            duration: Duration(milliseconds: 1500 + i * 200),
-          ),
-        ),
-    ];
+    return [];
   }
 }
 //hello

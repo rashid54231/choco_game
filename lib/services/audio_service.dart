@@ -58,6 +58,8 @@ class AudioService {
   Future<void> playInvalid() => _playSfx(AssetPaths.sfxInvalid);
   Future<void> playSpecial() => _playSfx(AssetPaths.sfxSpecial);
   Future<void> playButton() => _playSfx(AssetPaths.sfxButton);
+  Future<void> playVictory() => _playSfx(AssetPaths.sfxVictory);
+  Future<void> playLose() => _playSfx(AssetPaths.sfxLose);
 
   void setMusicEnabled(bool enabled) {
     musicEnabled = enabled;

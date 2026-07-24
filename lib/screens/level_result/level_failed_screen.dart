@@ -7,13 +7,26 @@ import 'package:choco_blast_adventure/models/level_model.dart';
 import 'package:choco_blast_adventure/screens/gameplay/gameplay_screen.dart';
 import 'package:choco_blast_adventure/screens/home/home_screen.dart';
 import 'package:choco_blast_adventure/screens/level_map/level_map_screen.dart';
+import 'package:choco_blast_adventure/services/audio_service.dart';
 
 /// Professional level failed — encouraging dark UI with retry.
-class LevelFailedScreen extends StatelessWidget {
+class LevelFailedScreen extends StatefulWidget {
   final LevelModel level;
   final int score;
 
   const LevelFailedScreen({super.key, required this.level, required this.score});
+
+  @override
+  State<LevelFailedScreen> createState() => _LevelFailedScreenState();
+}
+
+class _LevelFailedScreenState extends State<LevelFailedScreen> {
+  @override
+  void initState() {
+    super.initState();
+    AudioService.instance.playLose();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +91,7 @@ class LevelFailedScreen extends StatelessWidget {
                       const Icon(Icons.score_rounded, color: AppColors.gold, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        'Score: $score',
+                        'Score: ${widget.score}',
                         style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 18, fontFamily: 'Baloo2', fontWeight: FontWeight.w600),
                       ),
                     ],
@@ -90,7 +103,7 @@ class LevelFailedScreen extends StatelessWidget {
                 // Retry button
                 GestureDetector(
                   onTap: () => Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => GameplayScreen(level: LevelModel.level(level.levelNumber))),
+                    MaterialPageRoute(builder: (_) => GameplayScreen(level: LevelModel.level(widget.level.levelNumber))),
                   ),
                   child: Container(
                     width: 240,

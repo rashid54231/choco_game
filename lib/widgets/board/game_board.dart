@@ -49,18 +49,6 @@ class _GameBoardState extends ConsumerState<GameBoard> {
       child: Stack(
         children: [
           Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF1C3352), Color(0xFF142840)],
-              ),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 8)),
-              ],
-            ),
             padding: const EdgeInsets.all(4),
             child: GridView.builder(
               physics: const NeverScrollableScrollPhysics(),
@@ -103,18 +91,18 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
   Color _bombColor(Tile tile) {
     switch (tile.type) {
-      case TileType.blueSphere:
-        return const Color(0xFF42A5F5);
-      case TileType.greenSquare:
-        return const Color(0xFF66BB6A);
-      case TileType.purpleFlower:
-        return const Color(0xFFAB47BC);
-      case TileType.orangeBean:
-        return const Color(0xFFFF9A3C);
-      case TileType.redBerry:
+      case TileType.apple:
         return const Color(0xFFEF5350);
-      case TileType.yellowStar:
-        return const Color(0xFFFFD54F);
+      case TileType.watermelon:
+        return const Color(0xFF66BB6A);
+      case TileType.lemon:
+        return const Color(0xFFFFEE58);
+      case TileType.banana:
+        return const Color(0xFFFFCA28);
+      case TileType.avocado:
+        return const Color(0xFF9CCC65);
+      case TileType.orange:
+        return const Color(0xFFFFA726);
       case null:
         return Colors.white;
     }
@@ -128,13 +116,13 @@ class _GameBoardState extends ConsumerState<GameBoard> {
         onPanUpdate: (d) { _panEnd = d.localPosition; },
         onPanEnd: (d) => _handlePanEnd(),
         child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 1.0, end: 1.2),
-          duration: const Duration(milliseconds: 50),
+          tween: Tween(begin: 1.0, end: 1.15),
+          duration: const Duration(milliseconds: 15),
           curve: Curves.easeOut,
           builder: (_, s, __) => Transform.scale(
             scale: s,
             child: Container(
-              decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.85), blurRadius: 10, spreadRadius: 2)]),
+              decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.85), spreadRadius: 2)]),
               child: tile.isEmpty ? const SizedBox.shrink() : TileWidget(tile: tile, size: cellSize),
             ),
           ),
@@ -149,8 +137,8 @@ class _GameBoardState extends ConsumerState<GameBoard> {
         children: [
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 1.0, end: 0.0),
-            duration: const Duration(milliseconds: 50),
-            curve: Curves.easeIn,
+            duration: const Duration(milliseconds: 20),
+            curve: Curves.easeInQuad,
             builder: (_, s, __) => Transform.scale(
               scale: s,
               child: tile.isEmpty ? const SizedBox.shrink() : TileWidget(tile: tile, size: cellSize),
@@ -181,7 +169,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
         onPanEnd: (d) => _handlePanEnd(),
         child: TweenAnimationBuilder<Offset>(
           tween: Tween(begin: Offset(0, -px), end: Offset.zero),
-          duration: const Duration(milliseconds: 60),
+          duration: const Duration(milliseconds: 30),
           curve: Curves.easeOut,
           builder: (_, o, __) => Transform.translate(
             offset: o,
@@ -200,7 +188,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
         onPanEnd: (d) => _handlePanEnd(),
         child: TweenAnimationBuilder<Offset>(
           tween: Tween(begin: Offset(0, -from - cellSize), end: Offset.zero),
-          duration: const Duration(milliseconds: 50),
+          duration: const Duration(milliseconds: 25),
           curve: Curves.easeOutBack,
           builder: (_, o, __) => Transform.translate(
             offset: o,

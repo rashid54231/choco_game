@@ -50,10 +50,9 @@ def save_wav(filename, audio):
     audio_16bit = np.int16(audio * 32767)
     write(os.path.join(AUDIO_DIR, filename), SAMPLE_RATE, audio_16bit)
 
-# 1. Juicy Match Sound (Sweet Arpeggio)
-# C5, E5, G5, C6 (Major chord arpeggio)
-match_audio = generate_arpeggio([523.25, 659.25, 783.99, 1046.50], 0.1, 'sine')
-match_audio = apply_envelope(match_audio, 0.05, 0.1, 0.8, 0.1)
+# 1. Juicy Match Sound (Cute Fast Chime)
+match_audio = generate_arpeggio([783.99, 1046.50, 1318.51, 1567.98], 0.04, 'sine')
+match_audio = apply_envelope(match_audio, 0.01, 0.05, 0.5, 0.05)
 save_wav("match.wav", match_audio)
 
 # 2. Swap Sound (Quick Whoosh/Slide)
@@ -103,5 +102,21 @@ for _ in range(2): # Loop twice
         
 bg_audio = np.array(bg_audio)
 save_wav("bg_music.wav", bg_audio)
+
+# 7. Victory Sound (Happy Fanfare)
+victory_notes = [523.25, 659.25, 783.99]
+victory_audio = []
+for f in victory_notes:
+    victory_audio.extend(apply_envelope(generate_tone(f, 0.15, 'square'), 0.02, 0.05, 0.6, 0.08))
+victory_audio.extend(apply_envelope(generate_tone(1046.50, 0.6, 'square'), 0.1, 0.2, 0.8, 0.3))
+save_wav("victory.wav", np.array(victory_audio))
+
+# 8. Lose Sound (Sad Descending)
+lose_notes = [392.00, 370.00, 349.23, 329.63]
+lose_audio = []
+for f in lose_notes[:-1]:
+    lose_audio.extend(apply_envelope(generate_tone(f, 0.3, 'sawtooth'), 0.05, 0.1, 0.7, 0.1))
+lose_audio.extend(apply_envelope(generate_tone(lose_notes[-1], 0.8, 'sawtooth'), 0.1, 0.2, 0.6, 0.4))
+save_wav("lose.wav", np.array(lose_audio))
 
 print("Professional juicy sound effects generated successfully!")

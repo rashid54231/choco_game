@@ -250,28 +250,28 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final totalSteps = (_pendingResolution?.steps.length ?? 1);
     final stepIndex = step.cascadeIndex;
 
-    // Phase 1: Flash (40ms)
+    // Phase 1: Flash (15ms delay for 15ms tween)
     state = state.copyWith(
       animState: BoardAnimState.flash(step.clearedCells, stepIndex, totalSteps),
     );
-    await Future.delayed(const Duration(milliseconds: 40));
+    await Future.delayed(const Duration(milliseconds: 15));
 
-    // Phase 2: Pop (30ms)
+    // Phase 2: Pop (20ms delay for 20ms tween)
     AudioService.instance.playMatch();
     state = state.copyWith(
       animState: BoardAnimState.pop(step.clearedCells, stepIndex, totalSteps),
     );
-    await Future.delayed(const Duration(milliseconds: 30));
+    await Future.delayed(const Duration(milliseconds: 20));
 
-    // Phase 3: Gravity + board swap (60ms)
+    // Phase 3: Gravity + board swap (35ms delay for 30ms tween)
     AudioService.instance.playSwap();
     state = state.copyWith(
       board: step.boardAfter,
       animState: BoardAnimState.fall(step.fallDistances, stepIndex, totalSteps),
     );
-    await Future.delayed(const Duration(milliseconds: 60));
+    await Future.delayed(const Duration(milliseconds: 35));
 
-    // Phase 4: Refill (30ms)
+    // Phase 4: Refill (30ms delay for 25ms tween)
     state = state.copyWith(
       animState: BoardAnimState.refill(step.refillSources, stepIndex, totalSteps),
     );
@@ -477,7 +477,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final target = candidates[DateTime.now().millisecond % candidates.length];
 
     board[target.r][target.c] = Tile(
-      type: board[target.r][target.c].type ?? TileType.blueSphere,
+      type: board[target.r][target.c].type ?? TileType.apple,
       special: SpecialKind.colorBomb,
     );
     state = state.copyWith(board: board);

@@ -18,14 +18,55 @@ class SpecialTileWidget extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: TileShapePainter(
-          type: tile.type ?? TileType.redBerry,
-          special: tile.special,
-          stripedOrientation: tile.stripedOrientation,
-          glow: 1,
-        ),
-        child: const SizedBox.expand(),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // 3D Mahjong Block Base
+          Container(
+            margin: const EdgeInsets.only(bottom: 6, right: 3), // Space for 3D depth
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF6E5), // Ivory/Beige top
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                const BoxShadow(
+                  color: Color(0xFFD3B691), // Side edge
+                  offset: Offset(3, 3),
+                ),
+                const BoxShadow(
+                  color: Color(0xFFC7A985), // Bottom edge
+                  offset: Offset(0, 6),
+                ),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  offset: const Offset(3, 8),
+                  blurRadius: 5,
+                ),
+              ],
+              border: Border.all(color: const Color(0xFFE5CCAC), width: 1.5),
+            ),
+          ),
+          // Emoji Icon
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 6, right: 3),
+              child: Text(
+                tileEmoji[tile.type ?? TileType.apple] ?? '',
+                style: TextStyle(fontSize: size * 0.55),
+              ),
+            ),
+          ),
+          // Special Overlays
+          if (tile.isSpecial)
+            CustomPaint(
+              painter: TileShapePainter(
+                type: tile.type ?? TileType.apple,
+                special: tile.special,
+                stripedOrientation: tile.stripedOrientation,
+                glow: 1.0,
+              ),
+              child: const SizedBox.expand(),
+            ),
+        ],
       ),
     )
         .animate(onPlay: (c) => c.repeat(reverse: true))

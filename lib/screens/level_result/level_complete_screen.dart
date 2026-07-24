@@ -8,6 +8,7 @@ import 'package:choco_blast_adventure/models/level_model.dart';
 import 'package:choco_blast_adventure/screens/gameplay/gameplay_screen.dart';
 import 'package:choco_blast_adventure/screens/home/home_screen.dart';
 import 'package:choco_blast_adventure/screens/level_map/level_map_screen.dart';
+import 'package:choco_blast_adventure/services/audio_service.dart';
 import 'package:choco_blast_adventure/services/cache_service.dart';
 import 'package:choco_blast_adventure/widgets/common/star_rating.dart';
 
@@ -40,6 +41,7 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
     _scaleController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
     _confetti.play();
     _scaleController.forward();
+    AudioService.instance.playVictory();
     CacheService.instance.completeLevel(widget.level.levelNumber);
     CacheService.instance.setLevelStars(widget.level.levelNumber, widget.stars);
   }

@@ -12,6 +12,8 @@ class AssetPaths {
   static const String sfxInvalid = 'assets/audio/invalid.wav';
   static const String sfxSpecial = 'assets/audio/special.wav';
   static const String sfxButton = 'assets/audio/button.wav';
+  static const String sfxVictory = 'assets/audio/victory.wav';
+  static const String sfxLose = 'assets/audio/lose.wav';
 
   // Decorative images (optional)
   static const String splashLogo = 'assets/images/logo.png';

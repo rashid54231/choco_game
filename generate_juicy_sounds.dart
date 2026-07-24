@@ -10,10 +10,10 @@ void main() async {
     audioDir.createSync(recursive: true);
   }
 
-  // 1. Juicy Match Sound (Sweet Arpeggio)
+  // 1. Juicy Match Sound (Cute Fast Chime)
   final matchAudio = applyEnvelope(
-    generateArpeggio([523.25, 659.25, 783.99, 1046.50], 0.1, 'sine'),
-    0.05, 0.1, 0.8, 0.1,
+    generateArpeggio([783.99, 1046.50, 1318.51, 1567.98], 0.04, 'sine'),
+    0.01, 0.05, 0.5, 0.05,
   );
   saveWav('match.wav', matchAudio);
 
@@ -87,6 +87,24 @@ void main() async {
     }
   }
   saveWav('bg_music.wav', Float64List.fromList(bgRawList));
+
+  // 7. Victory Sound (Happy Fanfare)
+  final victoryNotes = [523.25, 659.25, 783.99];
+  final victoryAudio = <double>[];
+  for (var f in victoryNotes) {
+    victoryAudio.addAll(applyEnvelope(generateTone(f, 0.15, 'square'), 0.02, 0.05, 0.6, 0.08));
+  }
+  victoryAudio.addAll(applyEnvelope(generateTone(1046.50, 0.6, 'square'), 0.1, 0.2, 0.8, 0.3));
+  saveWav('victory.wav', Float64List.fromList(victoryAudio));
+
+  // 8. Lose Sound (Sad Descending)
+  final loseNotes = [392.00, 370.00, 349.23, 329.63];
+  final loseAudio = <double>[];
+  for (int i = 0; i < loseNotes.length - 1; i++) {
+    loseAudio.addAll(applyEnvelope(generateTone(loseNotes[i], 0.3, 'sawtooth'), 0.05, 0.1, 0.7, 0.1));
+  }
+  loseAudio.addAll(applyEnvelope(generateTone(loseNotes.last, 0.8, 'sawtooth'), 0.1, 0.2, 0.6, 0.4));
+  saveWav('lose.wav', Float64List.fromList(loseAudio));
 
   print("Professional juicy sound effects generated successfully with Dart!");
 }

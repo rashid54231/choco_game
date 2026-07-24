@@ -18,10 +18,10 @@ void main() {
   group('MatchDetector', () {
     test('detects a horizontal 3-match', () {
       final board = tileBoard([
-        [TileType.redBerry, TileType.redBerry, TileType.redBerry, TileType.blueSphere],
-        [TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean],
-        [TileType.blueSphere, TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower],
-        [TileType.orangeBean, TileType.blueSphere, TileType.greenSquare, TileType.yellowStar],
+        [TileType.apple, TileType.apple, TileType.apple, TileType.watermelon],
+        [TileType.lemon, TileType.banana, TileType.avocado, TileType.orange],
+        [TileType.watermelon, TileType.lemon, TileType.banana, TileType.avocado],
+        [TileType.orange, TileType.watermelon, TileType.lemon, TileType.banana],
       ]);
       final result = MatchDetector.findMatches(board);
       expect(result.matchedCells.length, 3);
@@ -29,10 +29,10 @@ void main() {
 
     test('detects a vertical 3-match', () {
       final board = tileBoard([
-        [TileType.redBerry, TileType.blueSphere, TileType.greenSquare, TileType.yellowStar],
-        [TileType.redBerry, TileType.purpleFlower, TileType.orangeBean, TileType.purpleFlower],
-        [TileType.redBerry, TileType.blueSphere, TileType.greenSquare, TileType.orangeBean],
-        [TileType.yellowStar, TileType.blueSphere, TileType.purpleFlower, TileType.greenSquare],
+        [TileType.apple, TileType.watermelon, TileType.lemon, TileType.banana],
+        [TileType.apple, TileType.avocado, TileType.orange, TileType.avocado],
+        [TileType.apple, TileType.watermelon, TileType.lemon, TileType.orange],
+        [TileType.banana, TileType.watermelon, TileType.avocado, TileType.lemon],
       ]);
       final result = MatchDetector.findMatches(board);
       expect(result.matchedCells.length, 3);
@@ -40,20 +40,20 @@ void main() {
 
     test('no match on a diagonal board', () {
       final board = tileBoard([
-        [TileType.redBerry, TileType.blueSphere, TileType.greenSquare, TileType.yellowStar],
-        [TileType.blueSphere, TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower],
-        [TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean],
-        [TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean, TileType.redBerry],
+        [TileType.apple, TileType.watermelon, TileType.lemon, TileType.banana],
+        [TileType.watermelon, TileType.lemon, TileType.banana, TileType.avocado],
+        [TileType.lemon, TileType.banana, TileType.avocado, TileType.orange],
+        [TileType.banana, TileType.avocado, TileType.orange, TileType.apple],
       ]);
       expect(MatchDetector.hasMatches(board), isFalse);
     });
 
     test('horizontal 4-match creates a horizontal striped special', () {
       final board = tileBoard([
-        [TileType.redBerry, TileType.redBerry, TileType.redBerry, TileType.redBerry],
-        [TileType.blueSphere, TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower],
-        [TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean],
-        [TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean, TileType.blueSphere],
+        [TileType.apple, TileType.apple, TileType.apple, TileType.apple],
+        [TileType.watermelon, TileType.lemon, TileType.banana, TileType.avocado],
+        [TileType.lemon, TileType.banana, TileType.avocado, TileType.orange],
+        [TileType.banana, TileType.avocado, TileType.orange, TileType.watermelon],
       ]);
       final result = MatchDetector.findMatches(board);
       expect(result.specials, isNotEmpty);
@@ -63,10 +63,10 @@ void main() {
 
     test('vertical 4-match creates a vertical striped special', () {
       final board = tileBoard([
-        [TileType.redBerry, TileType.blueSphere, TileType.greenSquare, TileType.yellowStar],
-        [TileType.redBerry, TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower],
-        [TileType.redBerry, TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean],
-        [TileType.redBerry, TileType.purpleFlower, TileType.orangeBean, TileType.blueSphere],
+        [TileType.apple, TileType.watermelon, TileType.lemon, TileType.banana],
+        [TileType.apple, TileType.lemon, TileType.banana, TileType.avocado],
+        [TileType.apple, TileType.banana, TileType.avocado, TileType.orange],
+        [TileType.apple, TileType.avocado, TileType.orange, TileType.watermelon],
       ]);
       final result = MatchDetector.findMatches(board);
       expect(result.specials.first.kind, SpecialKind.striped);
@@ -75,11 +75,11 @@ void main() {
 
     test('5-in-a-line creates a color bomb', () {
       final board = tileBoard([
-        [TileType.redBerry, TileType.redBerry, TileType.redBerry, TileType.redBerry, TileType.redBerry],
-        [TileType.blueSphere, TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean],
-        [TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean, TileType.blueSphere],
-        [TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean, TileType.blueSphere, TileType.greenSquare],
-        [TileType.purpleFlower, TileType.orangeBean, TileType.blueSphere, TileType.greenSquare, TileType.yellowStar],
+        [TileType.apple, TileType.apple, TileType.apple, TileType.apple, TileType.apple],
+        [TileType.watermelon, TileType.lemon, TileType.banana, TileType.avocado, TileType.orange],
+        [TileType.lemon, TileType.banana, TileType.avocado, TileType.orange, TileType.watermelon],
+        [TileType.banana, TileType.avocado, TileType.orange, TileType.watermelon, TileType.lemon],
+        [TileType.avocado, TileType.orange, TileType.watermelon, TileType.lemon, TileType.banana],
       ]);
       final result = MatchDetector.findMatches(board);
       expect(result.specials.first.kind, SpecialKind.colorBomb);
@@ -88,9 +88,9 @@ void main() {
     test('L-shape creates a wrapped tile', () {
       // Vertical pair + horizontal pair sharing a corner.
       final board = tileBoard([
-        [TileType.redBerry, TileType.blueSphere, TileType.greenSquare],
-        [TileType.redBerry, TileType.greenSquare, TileType.yellowStar],
-        [TileType.redBerry, TileType.redBerry, TileType.redBerry],
+        [TileType.apple, TileType.watermelon, TileType.lemon],
+        [TileType.apple, TileType.lemon, TileType.banana],
+        [TileType.apple, TileType.apple, TileType.apple],
       ]);
       final result = MatchDetector.findMatches(board);
       final wrapped = result.specials.where((s) => s.kind == SpecialKind.wrapped);
@@ -115,10 +115,10 @@ void main() {
   group('MoveValidator', () {
     test('valid swap that forms a match', () {
       final board = tileBoard([
-        [TileType.redBerry, TileType.redBerry, TileType.blueSphere, TileType.redBerry],
-        [TileType.greenSquare, TileType.yellowStar, TileType.redBerry, TileType.purpleFlower],
-        [TileType.blueSphere, TileType.greenSquare, TileType.yellowStar, TileType.orangeBean],
-        [TileType.orangeBean, TileType.blueSphere, TileType.greenSquare, TileType.yellowStar],
+        [TileType.apple, TileType.apple, TileType.watermelon, TileType.apple],
+        [TileType.lemon, TileType.banana, TileType.apple, TileType.avocado],
+        [TileType.watermelon, TileType.lemon, TileType.banana, TileType.orange],
+        [TileType.orange, TileType.watermelon, TileType.lemon, TileType.banana],
       ]);
       // Swapping (0,2) blueGem with (0,3)? no. Instead move the lone redBerry up.
       // Place: row0 = R R G R ; row1c2 = R. Swapping (1,2) with (0,2) makes R R R R.
@@ -128,10 +128,10 @@ void main() {
 
     test('invalid swap that forms no match', () {
       final board = tileBoard([
-        [TileType.redBerry, TileType.blueSphere, TileType.greenSquare, TileType.yellowStar],
-        [TileType.blueSphere, TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower],
-        [TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean],
-        [TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean, TileType.redBerry],
+        [TileType.apple, TileType.watermelon, TileType.lemon, TileType.banana],
+        [TileType.watermelon, TileType.lemon, TileType.banana, TileType.avocado],
+        [TileType.lemon, TileType.banana, TileType.avocado, TileType.orange],
+        [TileType.banana, TileType.avocado, TileType.orange, TileType.apple],
       ]);
       final attempt = MoveValidator.trySwap(board, 0, 0, 0, 1);
       expect(attempt.valid, isFalse);
@@ -146,10 +146,10 @@ void main() {
   group('CascadeResolver', () {
     test('resolves a match and produces a stable board with no matches', () {
       final board = tileBoard([
-        [TileType.redBerry, TileType.redBerry, TileType.redBerry, TileType.blueSphere],
-        [TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean],
-        [TileType.blueSphere, TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower],
-        [TileType.orangeBean, TileType.blueSphere, TileType.greenSquare, TileType.yellowStar],
+        [TileType.apple, TileType.apple, TileType.apple, TileType.watermelon],
+        [TileType.lemon, TileType.banana, TileType.avocado, TileType.orange],
+        [TileType.watermelon, TileType.lemon, TileType.banana, TileType.avocado],
+        [TileType.orange, TileType.watermelon, TileType.lemon, TileType.banana],
       ]);
       final resolution = CascadeResolver(99).resolve(board);
       expect(resolution.steps, isNotEmpty);
@@ -167,14 +167,14 @@ void main() {
 
     test('striped tile activation clears a full row', () {
       final board = tileBoard([
-        [TileType.redBerry, TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower],
-        [TileType.blueSphere, TileType.orangeBean, TileType.redBerry, TileType.blueSphere],
-        [TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean],
-        [TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean, TileType.redBerry],
+        [TileType.apple, TileType.lemon, TileType.banana, TileType.avocado],
+        [TileType.watermelon, TileType.orange, TileType.apple, TileType.watermelon],
+        [TileType.lemon, TileType.banana, TileType.avocado, TileType.orange],
+        [TileType.banana, TileType.avocado, TileType.orange, TileType.apple],
       ]);
       // Put a horizontal striped redBerry at (1,2) and trigger it directly.
       board[1][2] = const Tile(
-        type: TileType.redBerry,
+        type: TileType.apple,
         special: SpecialKind.striped,
         stripedOrientation: StripedOrientation.horizontal,
       );
@@ -187,10 +187,10 @@ void main() {
   group('ScoringEngine', () {
     test('combo multiplier increases score for chained cascades', () {
       final board = tileBoard([
-        [TileType.redBerry, TileType.redBerry, TileType.redBerry, TileType.blueSphere],
-        [TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower, TileType.orangeBean],
-        [TileType.blueSphere, TileType.greenSquare, TileType.yellowStar, TileType.purpleFlower],
-        [TileType.orangeBean, TileType.blueSphere, TileType.greenSquare, TileType.yellowStar],
+        [TileType.apple, TileType.apple, TileType.apple, TileType.watermelon],
+        [TileType.lemon, TileType.banana, TileType.avocado, TileType.orange],
+        [TileType.watermelon, TileType.lemon, TileType.banana, TileType.avocado],
+        [TileType.orange, TileType.watermelon, TileType.lemon, TileType.banana],
       ]);
       final resolution = CascadeResolver(3).resolve(board);
       final score = ScoringEngine().scoreForResolution(resolution);
