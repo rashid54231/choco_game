@@ -46,8 +46,8 @@ class ComboCounter extends StatelessWidget {
           height: 1.1,
           color: color,
           shadows: [
-            Shadow(color: Colors.black.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 3)),
-            Shadow(color: color.withOpacity(0.6), blurRadius: 16),
+            Shadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3)),
+            Shadow(color: color.withValues(alpha: 0.6), blurRadius: 16),
           ],
         ),
       )

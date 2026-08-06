@@ -34,7 +34,7 @@ class AppTheme {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
             elevation: 6,
-            shadowColor: AppColors.primary.withOpacity(0.4),
+            shadowColor: AppColors.primary.withValues(alpha: 0.4),
           ),
         ),
         appBarTheme: const AppBarTheme(

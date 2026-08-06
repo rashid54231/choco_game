@@ -63,7 +63,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       shape: BoxShape.circle,
                       gradient: AppColors.purpleGradient,
                       boxShadow: [
-                        BoxShadow(color: AppColors.candyPurple.withOpacity(0.3), blurRadius: 20),
+                        BoxShadow(color: AppColors.candyPurple.withValues(alpha: 0.3), blurRadius: 20),
                       ],
                     ),
                     child: const Center(child: Icon(Icons.person_add_rounded, color: Colors.white, size: 36)),
@@ -92,7 +92,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: AppColors.error.withOpacity(0.15),
+                              color: AppColors.error.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
@@ -116,7 +116,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               gradient: AppColors.pinkButtonGradient,
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
-                                BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4)),
+                                BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4)),
                               ],
                             ),
                             child: const Center(
@@ -158,10 +158,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         labelStyle: const TextStyle(color: Colors.white54, fontFamily: 'Baloo2'),
         prefixIcon: Icon(icon, color: Colors.white38, size: 20),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.06),
+        fillColor: Colors.white.withValues(alpha: 0.06),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),

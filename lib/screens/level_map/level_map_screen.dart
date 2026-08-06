@@ -59,73 +59,76 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
     final screenH = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF1A0533), Color(0xFF0D0221), Color(0xFF0A0118)],
-          ),
-        ),
-        child: Stack(
-          children: [
-            // ── Decorative background elements ─────────────
-            ..._buildDecorations(),
-
-            // ── Main content ──────────────────────────────
-            SafeArea(
-              child: Column(
-                children: [
-                  _topBar(),
-                  Expanded(
-                    child: _loading
-                        ? const Center(
-                            child: CircularProgressIndicator(color: AppColors.candy),
-                          )
-                        : SingleChildScrollView(
-                            controller: _scroll,
-                            padding: const EdgeInsets.only(bottom: 80),
-                            child: SizedBox(
-                              height: screenH * 3.2,
-                              child: _buildPath(),
+      backgroundColor: const Color(0xFF1A0533), // Fallback background color
+      body: Stack(
+        children: [
+          // ── Main content (Background is now inside the scroll view) ──────────────────────────────
+          SafeArea(
+            child: Column(
+              children: [
+                _topBar(),
+                Expanded(
+                  child: _loading
+                      ? const Center(
+                          child: CircularProgressIndicator(color: AppColors.candy),
+                        )
+                      : SingleChildScrollView(
+                          controller: _scroll,
+                          padding: const EdgeInsets.only(bottom: 80),
+                          child: Container(
+                            height: screenH * 3.2,
+                            decoration: const BoxDecoration(
+                              image: DecorationImage(
+                                image: AssetImage('assets/images/candy_map_bg.png'),
+                                fit: BoxFit.cover,
+                                colorFilter: ColorFilter.mode(
+                                  Color(0x550D0221), 
+                                  BlendMode.darken,
+                                ),
+                              ),
+                            ),
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                // Put decorative elements inside so they also scroll
+                                ..._buildDecorations(),
+                                _buildPath(),
+                              ],
                             ),
                           ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Level Up button ───────────────────────────
-            Positioned(
-              bottom: 70,
-              right: 16,
-              child: GestureDetector(
-                onTap: () {
-                  AudioService.instance.playButton();
-                  _levelUp();
-                },
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.goldGradient,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(color: AppColors.gold.withOpacity(0.4), blurRadius: 16, offset: const Offset(0, 4)),
-                    ],
-                  ),
-                  child: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 28),
+                        ),
                 ),
-              ).animate(delay: 1200.ms).fadeIn().scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1)),
-
+              ],
             ),
+          ),
 
-            // ── Bottom tab bar ───────────────────────────
-            Positioned(bottom: 0, left: 0, right: 0, child: _bottomBar()),
-          ],
-        ),
+          // ── Level Up button ───────────────────────────
+          Positioned(
+            bottom: 70,
+            right: 16,
+            child: GestureDetector(
+              onTap: () {
+                AudioService.instance.playButton();
+                _levelUp();
+              },
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: AppColors.goldGradient,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: AppColors.gold.withValues(alpha: 0.4), blurRadius: 16, offset: const Offset(0, 4)),
+                  ],
+                ),
+                child: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 28),
+              ),
+            ).animate(delay: 1200.ms).fadeIn().scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1)),
+          ),
+
+          // ── Bottom tab bar ───────────────────────────
+          Positioned(bottom: 0, left: 0, right: 0, child: _bottomBar()),
+        ],
       ),
     );
   }
@@ -142,14 +145,14 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
             height: 2 + math.Random(i + 200).nextDouble() * 3,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.15 + math.Random(i + 300).nextDouble() * 0.2),
+              color: Colors.white.withValues(alpha: 0.15 + math.Random(i + 300).nextDouble() * 0.2),
             ),
           ),
         ),
       // Glow orbs
-      Positioned(top: 200, left: -40, child: _glowOrb(120, const Color(0xFFAB47BC).withOpacity(0.08))),
-      Positioned(top: 600, right: -30, child: _glowOrb(100, const Color(0xFFFF6B9D).withOpacity(0.06))),
-      Positioned(top: 1000, left: -20, child: _glowOrb(90, const Color(0xFF42A5F5).withOpacity(0.07))),
+      Positioned(top: 200, left: -40, child: _glowOrb(120, const Color(0xFFAB47BC).withValues(alpha: 0.08))),
+      Positioned(top: 600, right: -30, child: _glowOrb(100, const Color(0xFFFF6B9D).withValues(alpha: 0.06))),
+      Positioned(top: 1000, left: -20, child: _glowOrb(90, const Color(0xFF42A5F5).withValues(alpha: 0.07))),
     ];
   }
 
@@ -176,7 +179,7 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.glassBorder, width: 1),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 16),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 16),
         ],
       ),
       child: Row(
@@ -221,7 +224,7 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
                 Text(
                   '${_completed.length} / 50 completed',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 11,
                     fontFamily: 'Baloo2',
                   ),
@@ -240,9 +243,9 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
                 end: Alignment.bottomRight,
                 colors: [Color(0xFF8D6E63), Color(0xFF5D4037)],
               ),
-              border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8),
+                BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8),
               ],
             ),
             child: Center(child: Text(profile?.avatarUrl ?? '🍪', style: const TextStyle(fontSize: 20))),
@@ -304,22 +307,15 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
     final isCompleted = _completed.contains(level);
     final isUnlocked = level <= _highestUnlocked;
     final isCurrent = level == _highestUnlocked && !isCompleted;
-    final isMilestone = level % 10 == 0;
     final stars = _levelStars[level] ?? 0;
 
-    // Circle node size; stars pill floats above the node
-    const double nodeSize = 64.0;
-    const double pillH = 26.0;
-    const double pillW = 70.0;
-    const double pillOffset = 6.0; // how many px the pill overlaps the top of the circle
-
-    // Total height = pill + overlap-adjusted node
-    final double totalH = pillH - pillOffset + nodeSize;
+    const double nodeSize = 72.0; // Larger, more tappable
+    const double starSize = 24.0;
 
     return Positioned(
-      // Centre the node on the path point; account for pill above
+      // Centre the node on the path point
       left: pos.dx - nodeSize / 2,
-      top: pos.dy - (nodeSize / 2) - (pillH - pillOffset),
+      top: pos.dy - nodeSize / 2,
       child: GestureDetector(
         onTap: isUnlocked ? () {
           AudioService.instance.playButton();
@@ -327,126 +323,178 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
         } : null,
         child: SizedBox(
           width: nodeSize,
-          height: totalH,
+          height: nodeSize + 15, // Extra space for stars at the bottom
           child: Stack(
             clipBehavior: Clip.none,
-            alignment: Alignment.bottomCenter,
+            alignment: Alignment.center,
             children: [
-              // ── Circle node (bottom-aligned) ──────────────────
+              // ── Professional Stars Plate (Left side, horizontal, behind the node) ───────
+              if (isCompleted)
+                Positioned(
+                  right: nodeSize - 16, // Right edge of the plate tucks 16px under the left side of the circle
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A0533).withValues(alpha: 0.95), // Deep space purple plate
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: stars > 0 ? const Color(0xFFFFD54F) : Colors.white.withValues(alpha: 0.3),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: stars > 0 ? const Color(0xFFFFD54F).withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.6),
+                            blurRadius: 8,
+                            offset: const Offset(-2, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(3, (i) {
+                          final filled = i < stars;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 1.5),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Solid base (Dark for empty, Gold for filled)
+                                Icon(
+                                  Icons.star_rounded,
+                                  size: 16,
+                                  color: filled ? const Color(0xFFFFD54F) : const Color(0xFF3B1E63),
+                                ),
+                                // Crisp border for empty stars so they don't disappear
+                                if (!filled)
+                                  const Icon(
+                                    Icons.star_border_rounded,
+                                    size: 16,
+                                    color: Colors.white60,
+                                  ),
+                                // Subtle inner shadow / highlight
+                                if (filled)
+                                  Icon(
+                                    Icons.star_rounded,
+                                    size: 16,
+                                    color: Colors.transparent,
+                                    shadows: [
+                                      Shadow(color: const Color(0xFFF57F17).withValues(alpha: 0.8), blurRadius: 4, offset: const Offset(0, 1)),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ).animate(delay: (index * 50 + i * 150).ms).scale(begin: const Offset(0, 0), end: const Offset(1, 1), curve: Curves.elasticOut, duration: 600.ms);
+                        }),
+                      ),
+                    ),
+                  ),
+                ),
+
+              // ── 3D Premium Candy Button ──────────────────
               Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
+                top: 0,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 300),
                   width: nodeSize,
                   height: nodeSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
+                    // Premium gradients based on state
                     gradient: isCompleted
                         ? const LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [Color(0xFF66BB6A), Color(0xFF388E3C)],
+                            colors: [Color(0xFF81C784), Color(0xFF388E3C), Color(0xFF1B5E20)],
+                            stops: [0.0, 0.5, 1.0],
                           )
                         : isCurrent
                             ? const LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
-                                colors: [Color(0xFFFF6B9D), Color(0xFFE91E7A)],
+                                colors: [Color(0xFFFF8A65), Color(0xFFF4511E), Color(0xFFBF360C)],
+                                stops: [0.0, 0.5, 1.0],
                               )
                             : isUnlocked
                                 ? const LinearGradient(
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
-                                    colors: [Color(0xFFAB47BC), Color(0xFF7B1FA2)],
+                                    colors: [Color(0xFFBA68C8), Color(0xFF8E24AA), Color(0xFF4A148C)],
+                                    stops: [0.0, 0.5, 1.0],
                                   )
                                 : LinearGradient(
-                                    colors: [Colors.grey[800]!, Colors.grey[900]!],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [Colors.white.withValues(alpha: 0.25), Colors.white.withValues(alpha: 0.05)],
                                   ),
                     border: Border.all(
                       color: isCurrent
-                          ? Colors.white
+                          ? const Color(0xFFFFD54F)
                           : isCompleted
                               ? const Color(0xFFA5D6A7)
-                              : isMilestone
-                                  ? const Color(0xFFFFD54F)
-                                  : Colors.white.withOpacity(0.3),
-                      width: isCurrent ? 3 : isMilestone ? 2.5 : 1.5,
+                              : Colors.white.withValues(alpha: isUnlocked ? 0.6 : 0.15),
+                      width: isCurrent ? 3 : 2,
                     ),
                     boxShadow: [
                       if (isCurrent)
-                        BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 16, spreadRadius: 3),
-                      if (isMilestone && !isCurrent)
-                        BoxShadow(color: AppColors.gold.withOpacity(0.3), blurRadius: 12, spreadRadius: 2),
-                      BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3)),
+                        BoxShadow(color: const Color(0xFFFF8A65).withValues(alpha: 0.8), blurRadius: 20, spreadRadius: 4),
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        blurRadius: 6,
+                        offset: const Offset(0, 6),
+                      ),
                     ],
                   ),
-                  child: Center(
-                    child: isCompleted
-                        // Smaller tick so the stars above are the hero
-                        ? const Icon(Icons.check_rounded, color: Colors.white, size: 20)
-                        : isUnlocked
+                  child: Stack(
+                    children: [
+                      // Inner Glossy Highlight
+                      if (isUnlocked)
+                        Positioned(
+                          top: 4,
+                          left: 12,
+                          right: 12,
+                          height: nodeSize * 0.35,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.35),
+                              borderRadius: BorderRadius.circular(nodeSize / 2),
+                            ),
+                          ),
+                        ),
+                      // Center Content (Number or Lock)
+                      Center(
+                        child: isUnlocked
                             ? Text(
                                 '$level',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 28,
                                   fontFamily: 'Baloo2',
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.black.withValues(alpha: 0.4),
+                                      offset: const Offset(0, 3),
+                                      blurRadius: 4,
+                                    ),
+                                  ],
                                 ),
                               )
-                            : Icon(Icons.lock_rounded, color: Colors.white.withOpacity(0.4), size: 22),
+                            : Icon(Icons.lock_rounded, color: Colors.white.withValues(alpha: 0.5), size: 28),
+                      ),
+                    ],
                   ),
                 ),
               ),
 
-              // ── Stars pill (top, overlapping node edge) ───────
-              if (isCompleted)
-                Positioned(
-                  top: 0,
-                  child: Container(
-                    width: pillW,
-                    height: pillH,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          const Color(0xFF2D1B69).withOpacity(0.95),
-                          const Color(0xFF1A0533).withOpacity(0.95),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: stars > 0
-                            ? const Color(0xFFFFD740).withOpacity(0.7)
-                            : Colors.white.withOpacity(0.15),
-                        width: 1.2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: stars > 0
-                              ? const Color(0xFFFFD740).withOpacity(0.25)
-                              : Colors.black.withOpacity(0.4),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(3, (i) {
-                        final filled = i < stars;
-                        return Icon(
-                          filled ? Icons.star_rounded : Icons.star_border_rounded,
-                          size: 18,
-                          color: filled ? const Color(0xFFFFD740) : Colors.white30,
-                        );
-                      }),
-                    ),
-                  ),
-                ),
+              // ── Bouncing Indicator for Current Level ───────
+              if (isCurrent)
+                const Positioned(
+                  top: -24,
+                  child: Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFFFFD54F), size: 40, shadows: [Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(0, 2))]),
+                ).animate(onPlay: (c) => c.repeat(reverse: true)).moveY(begin: -5, end: 5, duration: 600.ms, curve: Curves.easeInOut),
             ],
           ),
         ),
@@ -489,7 +537,7 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
         color: AppColors.tabBg,
         border: Border(top: BorderSide(color: AppColors.glassBorder, width: 1)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 16, offset: const Offset(0, -4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 16, offset: const Offset(0, -4)),
         ],
       ),
       child: SafeArea(
@@ -521,7 +569,7 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: active ? AppColors.candy.withOpacity(0.2) : Colors.transparent,
+              color: active ? AppColors.candy.withValues(alpha: 0.2) : Colors.transparent,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: active ? AppColors.candy : Colors.white38, size: 22),
@@ -584,7 +632,7 @@ class _PathPainter extends CustomPainter {
 
     // Shadow
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.3)
+      ..color = Colors.black.withValues(alpha: 0.3)
       ..strokeWidth = 28
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
@@ -620,7 +668,7 @@ class _PathPainter extends CustomPainter {
 
     // Candy-cane stripes
     final stripePaint = Paint()
-      ..color = const Color(0xFF6C5CE7).withOpacity(0.3)
+      ..color = const Color(0xFF6C5CE7).withValues(alpha: 0.3)
       ..strokeWidth = 20
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
@@ -700,10 +748,10 @@ class _HeartBadgeState extends ConsumerState<_HeartBadge> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.error.withOpacity(0.3), AppColors.error.withOpacity(0.1)],
+          colors: [AppColors.error.withValues(alpha: 0.3), AppColors.error.withValues(alpha: 0.1)],
         ),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.error.withOpacity(0.3), width: 1),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

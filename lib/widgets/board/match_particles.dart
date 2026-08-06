@@ -123,7 +123,7 @@ class _ParticlePainter extends CustomPainter {
       if (p.isDead) continue;
       final opacity = (1.0 - p.progress).clamp(0.0, 1.0);
       final paint = Paint()
-        ..color = p.color.withOpacity(opacity)
+        ..color = p.color.withValues(alpha: opacity)
         ..style = PaintingStyle.fill;
       final radius = p.size * (1.0 - p.progress * 0.5);
       canvas.drawCircle(p.position, radius, paint);

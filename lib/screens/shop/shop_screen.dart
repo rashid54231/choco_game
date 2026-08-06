@@ -54,7 +54,7 @@ class ShopScreen extends ConsumerWidget {
                         height: 36,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                         ),
                         child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
                       ),
@@ -95,7 +95,7 @@ class ShopScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.gold.withOpacity(0.15),
+                        color: AppColors.gold.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Text(
@@ -136,7 +136,7 @@ class ShopScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.glassBorder),
         boxShadow: [
-          BoxShadow(color: b.color.withOpacity(0.08), blurRadius: 16),
+          BoxShadow(color: b.color.withValues(alpha: 0.08), blurRadius: 16),
         ],
       ),
       child: Column(
@@ -151,9 +151,9 @@ class ShopScreen extends ConsumerWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [b.color.withOpacity(0.3), b.color.withOpacity(0.1)],
+                colors: [b.color.withValues(alpha: 0.3), b.color.withValues(alpha: 0.1)],
               ),
-              border: Border.all(color: b.color.withOpacity(0.3), width: 1.5),
+              border: Border.all(color: b.color.withValues(alpha: 0.3), width: 1.5),
             ),
             child: Icon(b.icon, color: b.color, size: 24),
           ),
@@ -186,6 +186,7 @@ class ShopScreen extends ConsumerWidget {
               AudioService.instance.playButton();
               final profileNotifier = ref.read(profileProvider.notifier);
               final success = await profileNotifier.buyBooster(b.type, b.cost);
+              if (!context.mounted) return;
               if (success) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -207,10 +208,10 @@ class ShopScreen extends ConsumerWidget {
               height: 32,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [b.color.withOpacity(0.4), b.color.withOpacity(0.2)],
+                  colors: [b.color.withValues(alpha: 0.4), b.color.withValues(alpha: 0.2)],
                 ),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: b.color.withOpacity(0.4), width: 1),
+                border: Border.all(color: b.color.withValues(alpha: 0.4), width: 1),
               ),
               child: Center(
                 child: Text(

@@ -76,7 +76,9 @@ class MatchDetector {
           run++;
         } else {
           if (run >= 3) {
-            for (int k = c - run; k < c; k++) hLen[r][k] = run;
+            for (int k = c - run; k < c; k++) {
+              hLen[r][k] = run;
+            }
           }
           run = 1;
         }
@@ -95,7 +97,9 @@ class MatchDetector {
           run++;
         } else {
           if (run >= 3) {
-            for (int k = r - run; k < r; k++) vLen[k][c] = run;
+            for (int k = r - run; k < r; k++) {
+              vLen[k][c] = run;
+            }
           }
           run = 1;
         }
@@ -114,45 +118,73 @@ class MatchDetector {
       }
     }
 
-    // Decide specials.
-    // Priority: colorBomb (>=5 straight) > wrapped (L/T, both dirs>=3) > striped (=4).
-    for (int r = 0; r < rows; r++) {
-      for (int c = 0; c < cols; c++) {
-        final h = hLen[r][c];
-        final v = vLen[r][c];
-        if (h < 3 && v < 3) continue;
-        final type = board[r][c].type!;
-        final isL = h >= 3 && v >= 3;
-        final straight5 = (h >= 5 && v < 3) || (v >= 5 && h < 3);
-
-        if (straight5) {
-          specials[Cell(r, c)] = SpecialCreation(
-            cell: Cell(r, c),
-            kind: SpecialKind.colorBomb,
-            type: type,
-          );
-        } else if (isL) {
-          // L / T shape -> wrapped
-          specials[Cell(r, c)] = SpecialCreation(
-            cell: Cell(r, c),
-            kind: SpecialKind.wrapped,
-            type: type,
-          );
-        } else if (h == 4) {
-          specials[Cell(r, c)] = SpecialCreation(
-            cell: Cell(r, c),
-            kind: SpecialKind.striped,
-            orientation: StripedOrientation.horizontal,
-            type: type,
-          );
-        } else if (v == 4) {
-          specials[Cell(r, c)] = SpecialCreation(
-            cell: Cell(r, c),
-            kind: SpecialKind.striped,
-            orientation: StripedOrientation.vertical,
-            type: type,
-          );
+    // Decide specials using connected components to ensure only ONE special per match group
+    final visited = <Cell>{};
+    for (final startCell in matched) {
+      if (visited.contains(startCell)) continue;
+      
+      final type = board[startCell.r][startCell.c].type!;
+      final queue = [startCell];
+      final group = <Cell>[];
+      
+      while (queue.isNotEmpty) {
+        final curr = queue.removeLast();
+        if (visited.contains(curr)) continue;
+        visited.add(curr);
+        group.add(curr);
+        
+        final dr = const [0, 1, 0, -1];
+        final dc = const [1, 0, -1, 0];
+        for (int i = 0; i < 4; i++) {
+          final nr = curr.r + dr[i];
+          final nc = curr.c + dc[i];
+          final nCell = Cell(nr, nc);
+          if (matched.contains(nCell) && !visited.contains(nCell) && board[nr][nc].type == type) {
+            queue.add(nCell);
+          }
         }
+      }
+      
+      // Analyze the connected group
+      int maxH = 0;
+      int maxV = 0;
+      Cell? intersectCell;
+      
+      for (final cell in group) {
+        final h = hLen[cell.r][cell.c];
+        final v = vLen[cell.r][cell.c];
+        if (h > maxH) maxH = h;
+        if (v > maxV) maxV = v;
+        if (h >= 3 && v >= 3) intersectCell = cell;
+      }
+      
+      SpecialKind kind = SpecialKind.none;
+      StripedOrientation? orientation;
+      Cell spawnCell = group.first;
+      
+      if (maxH >= 5 || maxV >= 5) {
+        kind = SpecialKind.colorBomb;
+        spawnCell = group.firstWhere((c) => hLen[c.r][c.c] >= 5 || vLen[c.r][c.c] >= 5, orElse: () => group.first);
+      } else if (intersectCell != null) {
+        kind = SpecialKind.wrapped;
+        spawnCell = intersectCell;
+      } else if (maxH == 4) {
+        kind = SpecialKind.striped;
+        orientation = StripedOrientation.horizontal;
+        spawnCell = group.firstWhere((c) => hLen[c.r][c.c] == 4, orElse: () => group.first);
+      } else if (maxV == 4) {
+        kind = SpecialKind.striped;
+        orientation = StripedOrientation.vertical;
+        spawnCell = group.firstWhere((c) => vLen[c.r][c.c] == 4, orElse: () => group.first);
+      }
+      
+      if (kind != SpecialKind.none) {
+        specials[spawnCell] = SpecialCreation(
+          cell: spawnCell,
+          kind: kind,
+          orientation: orientation,
+          type: type,
+        );
       }
     }
 

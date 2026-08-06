@@ -15,6 +15,7 @@ import 'package:choco_blast_adventure/services/audio_service.dart';
 import 'package:choco_blast_adventure/widgets/board/bomb_blast_overlay.dart';
 import 'package:choco_blast_adventure/widgets/board/tile_widget.dart';
 import 'package:choco_blast_adventure/widgets/board/match_particles.dart';
+import 'dart:ui'; // For ImageFilter
 
 class GameBoard extends ConsumerStatefulWidget {
   final LevelModel level;
@@ -36,18 +37,43 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
   @override
   Widget build(BuildContext context) {
-    final game = ref.watch(boardProvider(widget.level));
+    // Only watch what is needed for the overlay to prevent full board rebuilds
+    final hasBombBlast = ref.watch(boardProvider(widget.level).select(
+      (s) => s.animState.bombBlastCenter != null && s.animState.bombBlastCells.isNotEmpty
+    ));
+    final bombCenter = ref.watch(boardProvider(widget.level).select((s) => s.animState.bombBlastCenter));
+    final bombCells = ref.watch(boardProvider(widget.level).select((s) => s.animState.bombBlastCells));
+    final bombTile = bombCenter != null ? ref.watch(boardProvider(widget.level).select((s) => s.board[bombCenter.r][bombCenter.c])) : null;
+
     final rows = widget.level.gridSize;
     final cols = widget.level.gridSize;
-    final anim = game.animState;
-
-    final hasBombBlast = anim.bombBlastCenter != null && anim.bombBlastCells.isNotEmpty;
 
     return SizedBox(
       width: widget.boardSize,
       height: widget.boardSize,
       child: Stack(
         children: [
+          // Glassmorphism Board Background
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF150538).withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ),
           Container(
             padding: const EdgeInsets.all(4),
             child: GridView.builder(
@@ -61,17 +87,29 @@ class _GameBoardState extends ConsumerState<GameBoard> {
               itemBuilder: (context, index) {
                 final r = index ~/ cols;
                 final c = index % cols;
-                return _buildCell(game.activeBooster, game.board[r][c], r, c, anim.stateFor(r, c));
+                return CellWidget(
+                  level: widget.level,
+                  r: r,
+                  c: c,
+                  cellSize: cellSize,
+                  onPanStart: (d) { 
+                    _dragStartR = r; _dragStartC = c; _panStart = d.localPosition; 
+                  },
+                  onPanUpdate: (d) { _panEnd = d.localPosition; },
+                  onPanEnd: (d) => _handlePanEnd(),
+                  onTapHammer: () => _tapHammer(r, c),
+                  onTapSpecial: () => _tapSpecial(r, c),
+                );
               },
             ),
           ),
           // Bomb blast overlay
-          if (hasBombBlast)
+          if (hasBombBlast && bombCenter != null && bombTile != null)
             Positioned.fill(
               child: BombBlastOverlay(
-                center: _cellToOffset(anim.bombBlastCenter!, rows),
-                color: _bombColor(game.board[anim.bombBlastCenter!.r][anim.bombBlastCenter!.c]),
-                hitPositions: anim.bombBlastCells
+                center: _cellToOffset(bombCenter, rows),
+                color: _bombColor(bombTile),
+                hitPositions: bombCells
                     .map((cell) => _cellToOffset(cell, rows))
                     .toSet(),
               ),
@@ -106,119 +144,6 @@ class _GameBoardState extends ConsumerState<GameBoard> {
       case null:
         return Colors.white;
     }
-  }
-
-  Widget _buildCell(ActiveBooster activeBooster, Tile tile, int r, int c, CellAnimState a) {
-    // MATCHED: flash glow
-    if (a.phase == CellAnimPhase.matched) {
-      return GestureDetector(
-        onPanStart: (d) { _dragStartR = r; _dragStartC = c; _panStart = d.localPosition; },
-        onPanUpdate: (d) { _panEnd = d.localPosition; },
-        onPanEnd: (d) => _handlePanEnd(),
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 1.0, end: 1.15),
-          duration: const Duration(milliseconds: 15),
-          curve: Curves.easeOut,
-          builder: (_, s, __) => Transform.scale(
-            scale: s,
-            child: Container(
-              decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.85), spreadRadius: 2)]),
-              child: tile.isEmpty ? const SizedBox.shrink() : TileWidget(tile: tile, size: cellSize),
-            ),
-          ),
-        ),
-      );
-    }
-
-    // POPPING: shrink + particles
-    if (a.phase == CellAnimPhase.popping) {
-      return Stack(
-        clipBehavior: Clip.none,
-        children: [
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 1.0, end: 0.0),
-            duration: const Duration(milliseconds: 20),
-            curve: Curves.easeInQuad,
-            builder: (_, s, __) => Transform.scale(
-              scale: s,
-              child: tile.isEmpty ? const SizedBox.shrink() : TileWidget(tile: tile, size: cellSize),
-            ),
-          ),
-          Positioned(
-            left: cellSize / 2 - 14,
-            top: cellSize / 2 - 14,
-            child: SizedBox(
-              width: 28,
-              height: 28,
-              child: MatchParticles(
-                center: const Offset(14, 14),
-                color: tile.type != null ? tileBaseColor[tile.type!]! : Colors.white,
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    // FALLING: slide down
-    if (a.phase == CellAnimPhase.falling && a.fallDistance > 0) {
-      final px = a.fallDistance * (cellSize + 2);
-      return GestureDetector(
-        onPanStart: (d) { _dragStartR = r; _dragStartC = c; _panStart = d.localPosition; },
-        onPanUpdate: (d) { _panEnd = d.localPosition; },
-        onPanEnd: (d) => _handlePanEnd(),
-        child: TweenAnimationBuilder<Offset>(
-          tween: Tween(begin: Offset(0, -px), end: Offset.zero),
-          duration: const Duration(milliseconds: 30),
-          curve: Curves.easeOut,
-          builder: (_, o, __) => Transform.translate(
-            offset: o,
-            child: tile.isEmpty ? const SizedBox.shrink() : TileWidget(tile: tile, size: cellSize),
-          ),
-        ),
-      );
-    }
-
-    // REFILLING: slide in from top
-    if (a.phase == CellAnimPhase.refilling) {
-      final from = a.fromRow.abs() * (cellSize + 2);
-      return GestureDetector(
-        onPanStart: (d) { _dragStartR = r; _dragStartC = c; _panStart = d.localPosition; },
-        onPanUpdate: (d) { _panEnd = d.localPosition; },
-        onPanEnd: (d) => _handlePanEnd(),
-        child: TweenAnimationBuilder<Offset>(
-          tween: Tween(begin: Offset(0, -from - cellSize), end: Offset.zero),
-          duration: const Duration(milliseconds: 25),
-          curve: Curves.easeOutBack,
-          builder: (_, o, __) => Transform.translate(
-            offset: o,
-            child: tile.isEmpty ? const SizedBox.shrink() : TileWidget(tile: tile, size: cellSize, row: r, col: c),
-          ),
-        ),
-      );
-    }
-
-    // IDLE
-    return GestureDetector(
-      onTap: activeBooster == ActiveBooster.hammer
-          ? () => _tapHammer(r, c)
-          : (tile.isSpecial ? () => _tapSpecial(r, c) : null),
-      onPanStart: (d) { 
-        AudioService.instance.playButton();
-        _dragStartR = r; _dragStartC = c; _panStart = d.localPosition; 
-      },
-      onPanUpdate: (d) { _panEnd = d.localPosition; },
-      onPanEnd: (d) => _handlePanEnd(),
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 80),
-        switchInCurve: Curves.easeOutBack,
-        switchOutCurve: Curves.easeIn,
-        transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: FadeTransition(opacity: anim, child: child)),
-        child: tile.isEmpty
-            ? const SizedBox.shrink(key: ValueKey('empty'))
-            : TileWidget(key: ValueKey('${tile.type}-${tile.special}-$r-$c'), tile: tile, size: cellSize, row: r, col: c),
-      ),
-    );
   }
 
   void _handlePanEnd() {
@@ -331,5 +256,148 @@ class _GameBoardState extends ConsumerState<GameBoard> {
       if (!MoveValidator.hasAnyValidMove(notifier.snapshot.board)) notifier.reshuffle();
     }
     setState(() => _busy = false);
+  }
+}
+
+class CellWidget extends ConsumerWidget {
+  final LevelModel level;
+  final int r;
+  final int c;
+  final double cellSize;
+  final GestureDragStartCallback onPanStart;
+  final GestureDragUpdateCallback onPanUpdate;
+  final GestureDragEndCallback onPanEnd;
+  final VoidCallback onTapHammer;
+  final VoidCallback onTapSpecial;
+
+  const CellWidget({
+    super.key,
+    required this.level,
+    required this.r,
+    required this.c,
+    required this.cellSize,
+    required this.onPanStart,
+    required this.onPanUpdate,
+    required this.onPanEnd,
+    required this.onTapHammer,
+    required this.onTapSpecial,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeBooster = ref.watch(boardProvider(level).select((s) => s.activeBooster));
+    final tile = ref.watch(boardProvider(level).select((s) => s.board[r][c]));
+    final a = ref.watch(boardProvider(level).select((s) => s.animState.stateFor(r, c)));
+
+    // MATCHED: flash glow
+    if (a.phase == CellAnimPhase.matched) {
+      return GestureDetector(
+        onPanStart: onPanStart,
+        onPanUpdate: onPanUpdate,
+        onPanEnd: onPanEnd,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 1.0, end: 1.15),
+          duration: const Duration(milliseconds: 15),
+          curve: Curves.easeOut,
+          builder: (_, s, _) => Transform.scale(
+            scale: s,
+            child: Container(
+              decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.white.withValues(alpha: 0.85), spreadRadius: 2)]),
+              child: tile.isEmpty ? const SizedBox.shrink() : TileWidget(tile: tile, size: cellSize),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // POPPING: shrink + particles
+    if (a.phase == CellAnimPhase.popping) {
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 1.0, end: 0.0),
+            duration: const Duration(milliseconds: 20),
+            curve: Curves.easeInQuad,
+            builder: (_, s, _) => Transform.scale(
+              scale: s,
+              child: tile.isEmpty ? const SizedBox.shrink() : TileWidget(tile: tile, size: cellSize),
+            ),
+          ),
+          Positioned(
+            left: cellSize / 2 - 14,
+            top: cellSize / 2 - 14,
+            child: SizedBox(
+              width: 28,
+              height: 28,
+              child: MatchParticles(
+                center: const Offset(14, 14),
+                color: tile.type != null ? tileBaseColor[tile.type!]! : Colors.white,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // FALLING: slide down
+    if (a.phase == CellAnimPhase.falling && a.fallDistance > 0) {
+      final px = a.fallDistance * (cellSize + 2);
+      return GestureDetector(
+        onPanStart: onPanStart,
+        onPanUpdate: onPanUpdate,
+        onPanEnd: onPanEnd,
+        child: TweenAnimationBuilder<Offset>(
+          tween: Tween(begin: Offset(0, -px), end: Offset.zero),
+          duration: const Duration(milliseconds: 30),
+          curve: Curves.easeOut,
+          builder: (_, o, _) => Transform.translate(
+            offset: o,
+            child: tile.isEmpty ? const SizedBox.shrink() : TileWidget(tile: tile, size: cellSize),
+          ),
+        ),
+      );
+    }
+
+    // REFILLING: slide in from top
+    if (a.phase == CellAnimPhase.refilling) {
+      final from = a.fromRow.abs() * (cellSize + 2);
+      return GestureDetector(
+        onPanStart: onPanStart,
+        onPanUpdate: onPanUpdate,
+        onPanEnd: onPanEnd,
+        child: TweenAnimationBuilder<Offset>(
+          tween: Tween(begin: Offset(0, -from - cellSize), end: Offset.zero),
+          duration: const Duration(milliseconds: 25),
+          curve: Curves.easeOutBack,
+          builder: (_, o, _) => Transform.translate(
+            offset: o,
+            child: tile.isEmpty ? const SizedBox.shrink() : TileWidget(tile: tile, size: cellSize, row: r, col: c),
+          ),
+        ),
+      );
+    }
+
+    // IDLE
+    return GestureDetector(
+      onTap: activeBooster == ActiveBooster.hammer
+          ? onTapHammer
+          : (tile.isSpecial ? onTapSpecial : null),
+      onPanStart: (d) {
+        AudioService.instance.playButton();
+        onPanStart(d);
+      },
+      onPanUpdate: onPanUpdate,
+      onPanEnd: onPanEnd,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 80),
+        switchInCurve: Curves.easeOutBack,
+        switchOutCurve: Curves.easeIn,
+        transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: FadeTransition(opacity: anim, child: child)),
+        child: tile.isEmpty
+            ? const SizedBox.shrink(key: ValueKey('empty'))
+            : TileWidget(key: ValueKey('${tile.type}-${tile.special}-$r-$c'), tile: tile, size: cellSize, row: r, col: c),
+      ),
+    );
   }
 }

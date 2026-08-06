@@ -23,10 +23,22 @@ class GoalProgress {
   int jellyCleared;
   int ingredientsDropped;
 
-  GoalProgress({this.score = 0, Map<TileType, int>? collected})
-      : collected = collected ?? {},
-        jellyCleared = 0,
-        ingredientsDropped = 0;
+  GoalProgress({this.score = 0, Map<TileType, int>? collected, this.jellyCleared = 0, this.ingredientsDropped = 0})
+      : collected = collected ?? {};
+
+  GoalProgress copyWith({
+    int? score,
+    Map<TileType, int>? collected,
+    int? jellyCleared,
+    int? ingredientsDropped,
+  }) {
+    return GoalProgress(
+      score: score ?? this.score,
+      collected: collected ?? Map.from(this.collected),
+      jellyCleared: jellyCleared ?? this.jellyCleared,
+      ingredientsDropped: ingredientsDropped ?? this.ingredientsDropped,
+    );
+  }
 
   int collectedOf(TileType t) => collected[t] ?? 0;
   void addCollected(TileType t, int n) => collected[t] = collectedOf(t) + n;
@@ -104,7 +116,6 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
   List<CascadeStep> _pendingSteps = [];
   CascadeResolution? _pendingResolution;
-  bool _isAnimatingSteps = false;
 
   GameStateNotifier(LevelModel level)
       : super(GameState(
@@ -141,6 +152,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
     
     // If it's a special tile, we activate it. Otherwise we just remove it / damage blocker
     Set<Cell>? preActivated;
+    int hammerJellyCleared = 0;
     if (tile.isSpecial) {
       preActivated = {Cell(r, c)};
     } else {
@@ -151,6 +163,7 @@ class GameStateNotifier extends StateNotifier<GameState> {
           iceLayers: tile.iceLayers - 1,
           blocker: tile.iceLayers - 1 <= 0 ? BlockerType.none : BlockerType.ice,
         );
+        hammerJellyCleared++;
       } else if (tile.blocker == BlockerType.chocolate) {
         board[r][c] = const Tile.empty();
       } else {
@@ -158,13 +171,19 @@ class GameStateNotifier extends StateNotifier<GameState> {
       }
     }
     
-    state = state.copyWith(isResolving: true, board: board, activeBooster: ActiveBooster.none);
+    state = state.copyWith(
+      isResolving: true, 
+      board: board, 
+      activeBooster: ActiveBooster.none,
+      goal: state.goal.copyWith(
+        jellyCleared: state.goal.jellyCleared + hammerJellyCleared,
+      )
+    );
     
     final resolution = _resolver.resolve(state.board, preActivated: preActivated);
     _pendingResolution = resolution;
     _pendingSteps = List.from(resolution.steps);
     
-    _isAnimatingSteps = true;
     try {
       await _animateNextStep();
     } catch (_) {
@@ -194,7 +213,6 @@ class GameStateNotifier extends StateNotifier<GameState> {
       return true;
     }
     
-    _isAnimatingSteps = true;
     try {
       await _animateNextStep();
     } catch (_) {
@@ -221,6 +239,8 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final goal = GoalProgress(
       score: oldGoal.score + gained,
       collected: Map.from(oldGoal.collected),
+      jellyCleared: oldGoal.jellyCleared + resolution.iceCleared,
+      ingredientsDropped: oldGoal.ingredientsDropped + resolution.ingredientsDropped,
     );
     for (final t in resolution.clearedTypes) {
       goal.addCollected(t, _countTypeInResolution(resolution, t));
@@ -229,7 +249,6 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final movesLeft = state.level.hasMoves ? state.movesLeft - 1 : state.movesLeft;
     state = state.copyWith(goal: goal, movesLeft: movesLeft);
 
-    _isAnimatingSteps = true;
     try {
       await _animateNextStep();
     } catch (_) {
@@ -281,7 +300,6 @@ class GameStateNotifier extends StateNotifier<GameState> {
   }
 
   void _finishCascade() {
-    _isAnimatingSteps = false;
     final resolution = _pendingResolution;
 
     // Update live stars so HUD reflects current score immediately
@@ -344,11 +362,15 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final cols = BoardHelper.cols(board);
 
     void addRow(int r) {
-      for (int c = 0; c < cols; c++) cleared.add(Cell(r, c));
+      for (int c = 0; c < cols; c++) {
+        cleared.add(Cell(r, c));
+      }
     }
 
     void addCol(int c) {
-      for (int r = 0; r < rows; r++) cleared.add(Cell(r, c));
+      for (int r = 0; r < rows; r++) {
+        cleared.add(Cell(r, c));
+      }
     }
 
     void add3x3(Cell cell) {
@@ -362,7 +384,9 @@ class GameStateNotifier extends StateNotifier<GameState> {
 
     if (t1.special == SpecialKind.colorBomb && t2.special == SpecialKind.colorBomb) {
       for (int r = 0; r < rows; r++) {
-        for (int c = 0; c < cols; c++) cleared.add(Cell(r, c));
+        for (int c = 0; c < cols; c++) {
+          cleared.add(Cell(r, c));
+        }
       }
     } else if (t1.special == SpecialKind.striped && t2.special == SpecialKind.striped) {
       addRow(a.r); addCol(a.c); addRow(b.r); addCol(b.c);
@@ -558,10 +582,18 @@ class GameStateNotifier extends StateNotifier<GameState> {
         _scoring.scoreForActivations(resolution);
     final gained = bombScore + cascadeScore;
 
+    int extraIceCleared = 0;
+    int extraIngredientsDropped = 0;
+    for (final cell in blastCells) {
+      if (state.board[cell.r][cell.c].blocker == BlockerType.ice) extraIceCleared++;
+    }
+
     final oldGoal = state.goal;
     final goal = GoalProgress(
       score: oldGoal.score + gained,
       collected: Map.from(oldGoal.collected),
+      jellyCleared: oldGoal.jellyCleared + resolution.iceCleared + extraIceCleared,
+      ingredientsDropped: oldGoal.ingredientsDropped + resolution.ingredientsDropped + extraIngredientsDropped,
     );
     for (final cell in blastCells) {
       final t = state.board[cell.r][cell.c].type;
@@ -574,7 +606,6 @@ class GameStateNotifier extends StateNotifier<GameState> {
     state = state.copyWith(goal: goal, movesLeft: state.movesLeft - 1);
 
     // Continue with cascade animations
-    _isAnimatingSteps = true;
     try {
       await _animateNextStep();
     } catch (_) {

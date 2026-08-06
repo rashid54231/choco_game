@@ -38,7 +38,7 @@ class TileShapePainter extends CustomPainter {
 
     // Outer glow ring
     final glowPaint = Paint()
-      ..color = Colors.white.withOpacity(0.15)
+      ..color = Colors.white.withValues(alpha: 0.15)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4;
@@ -46,13 +46,13 @@ class TileShapePainter extends CustomPainter {
 
     // Pulsing ring
     final ringPaint = Paint()
-      ..color = Colors.white.withOpacity(0.4 + glow * 0.3)
+      ..color = Colors.white.withValues(alpha: 0.4 + glow * 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5;
     canvas.drawCircle(c, r + 2, ringPaint);
 
     final overlayPaint = Paint()
-      ..color = Colors.white.withOpacity(0.95)
+      ..color = Colors.white.withValues(alpha: 0.95)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
 
@@ -68,7 +68,7 @@ class TileShapePainter extends CustomPainter {
           }
           // Arrow hints
           final arrowPaint = Paint()
-            ..color = Colors.white.withOpacity(0.5)
+            ..color = Colors.white.withValues(alpha: 0.5)
             ..style = PaintingStyle.stroke
             ..strokeWidth = 2;
           canvas.drawLine(Offset(c.dx - r * 0.9, c.dy), Offset(c.dx - r * 0.7, c.dy - r * 0.15), arrowPaint);
@@ -85,7 +85,7 @@ class TileShapePainter extends CustomPainter {
           }
           // Arrow hints
           final arrowPaint = Paint()
-            ..color = Colors.white.withOpacity(0.5)
+            ..color = Colors.white.withValues(alpha: 0.5)
             ..style = PaintingStyle.stroke
             ..strokeWidth = 2;
           canvas.drawLine(Offset(c.dx, c.dy - r * 0.9), Offset(c.dx - r * 0.15, c.dy - r * 0.7), arrowPaint);
@@ -111,7 +111,7 @@ class TileShapePainter extends CustomPainter {
           ..lineTo(c.dx - r * 0.5, c.dy)
           ..close();
         canvas.drawPath(diamond, Paint()
-          ..color = Colors.white.withOpacity(0.4)
+          ..color = Colors.white.withValues(alpha: 0.4)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.5);
         break;
@@ -124,7 +124,7 @@ class TileShapePainter extends CustomPainter {
           final a = (i * 2 * math.pi) / colors.length - math.pi / 2;
           final p = Offset(c.dx + math.cos(a) * r * 0.6, c.dy + math.sin(a) * r * 0.6);
           // Glow behind dot
-          canvas.drawCircle(p, 6, Paint()..color = colors[i].withOpacity(0.3));
+          canvas.drawCircle(p, 6, Paint()..color = colors[i].withValues(alpha: 0.3));
           canvas.drawCircle(p, 4, Paint()..color = colors[i]);
         }
         break;

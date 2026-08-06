@@ -49,7 +49,7 @@ class SettingsScreen extends ConsumerWidget {
                         height: 36,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                         ),
                         child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
                       ),
@@ -74,7 +74,7 @@ class SettingsScreen extends ConsumerWidget {
                     gradient: AppColors.purpleGradient,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
-                      BoxShadow(color: AppColors.candyPurple.withOpacity(0.3), blurRadius: 16),
+                      BoxShadow(color: AppColors.candyPurple.withValues(alpha: 0.3), blurRadius: 16),
                     ],
                   ),
                   child: Row(
@@ -84,8 +84,8 @@ class SettingsScreen extends ConsumerWidget {
                         height: 56,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.2),
-                          border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+                          color: Colors.white.withValues(alpha: 0.2),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
                         ),
                         child: Center(
                           child: Text(
@@ -103,7 +103,7 @@ class SettingsScreen extends ConsumerWidget {
                             const SizedBox(height: 4),
                             Text(
                               'Total Score: ${profile?.totalScore ?? 0}',
-                              style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13, fontFamily: 'Baloo2'),
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13, fontFamily: 'Baloo2'),
                             ),
                           ],
                         ),
@@ -137,7 +137,7 @@ class SettingsScreen extends ConsumerWidget {
                         },
                       ),
                     ),
-                    Divider(color: Colors.white.withOpacity(0.06), height: 1),
+                    Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
                     _settingTile(
                       icon: Icons.volume_up_rounded,
                       label: 'Sound Effects',
@@ -149,7 +149,7 @@ class SettingsScreen extends ConsumerWidget {
                         },
                       ),
                     ),
-                    Divider(color: Colors.white.withOpacity(0.06), height: 1),
+                    Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
                     _settingTile(
                       icon: Icons.info_outline_rounded,
                       label: 'About',
@@ -178,11 +178,11 @@ class SettingsScreen extends ConsumerWidget {
                   height: 50,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [AppColors.error, AppColors.error.withOpacity(0.8)],
+                      colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)],
                     ),
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
-                      BoxShadow(color: AppColors.error.withOpacity(0.3), blurRadius: 12),
+                      BoxShadow(color: AppColors.error.withValues(alpha: 0.3), blurRadius: 12),
                     ],
                   ),
                   child: const Center(
@@ -208,7 +208,7 @@ class SettingsScreen extends ConsumerWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.candy.withOpacity(0.15),
+              color: AppColors.candy.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: AppColors.candy, size: 20),
@@ -230,7 +230,7 @@ class SettingsScreen extends ConsumerWidget {
         width: 48,
         height: 28,
         decoration: BoxDecoration(
-          color: value ? AppColors.candy : Colors.white.withOpacity(0.15),
+          color: value ? AppColors.candy : Colors.white.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(14),
         ),
         child: AnimatedAlign(
@@ -243,7 +243,7 @@ class SettingsScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4)],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 4)],
             ),
           ),
         ),
@@ -274,8 +274,8 @@ class SettingsScreen extends ConsumerWidget {
                     colors: [Color(0xFF2D1B69), Color(0xFF150B35)],
                   ),
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFF6C5CE7).withOpacity(0.2)),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 30)],
+                  border: Border.all(color: const Color(0xFF6C5CE7).withValues(alpha: 0.2)),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.6), blurRadius: 30)],
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -298,9 +298,9 @@ class SettingsScreen extends ConsumerWidget {
                       style: const TextStyle(color: Colors.white, fontFamily: 'Baloo2'),
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.08),
+                        fillColor: Colors.white.withValues(alpha: 0.08),
                         hintText: 'Enter username',
-                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -329,10 +329,10 @@ class SettingsScreen extends ConsumerWidget {
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: isSelected ? AppColors.candy.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+                                color: isSelected ? AppColors.candy.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: isSelected ? AppColors.candy : Colors.white.withOpacity(0.1),
+                                  color: isSelected ? AppColors.candy : Colors.white.withValues(alpha: 0.1),
                                   width: isSelected ? 2 : 1,
                                 ),
                               ),
@@ -353,7 +353,7 @@ class SettingsScreen extends ConsumerWidget {
                             child: Container(
                               height: 40,
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
+                                color: Colors.white.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Center(

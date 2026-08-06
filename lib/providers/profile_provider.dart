@@ -22,14 +22,12 @@ final userProgressProvider = FutureProvider<Map<int, UserProgress>>((ref) async 
 /// The user's profile, wrapped so lives/score updates propagate.
 final profileProvider = StateNotifierProvider<ProfileNotifier, UserProfile?>((ref) {
   final authUser = ref.watch(authProvider);
-  final notifier = ProfileNotifier(ref);
-  notifier.state = authUser;
-  return notifier;
+  return ProfileNotifier(ref, authUser);
 });
 
 class ProfileNotifier extends StateNotifier<UserProfile?> {
   final Ref ref;
-  ProfileNotifier(this.ref) : super(null);
+  ProfileNotifier(this.ref, UserProfile? initial) : super(initial);
 
   void set(UserProfile? profile) {
     state = profile;

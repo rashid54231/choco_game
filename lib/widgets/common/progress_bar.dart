@@ -30,7 +30,7 @@ class ProgressBar extends StatelessWidget {
         Container(
           height: height,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.25),
+            color: Colors.white.withValues(alpha: 0.25),
             borderRadius: BorderRadius.circular(height / 2),
           ),
           child: FractionallySizedBox(
@@ -39,11 +39,11 @@ class ProgressBar extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [color.withOpacity(0.8), color],
+                  colors: [color.withValues(alpha: 0.8), color],
                 ),
                 borderRadius: BorderRadius.circular(height / 2),
                 boxShadow: [
-                  BoxShadow(color: color.withOpacity(0.6), blurRadius: 8),
+                  BoxShadow(color: color.withValues(alpha: 0.6), blurRadius: 8),
                 ],
               ),
             ),

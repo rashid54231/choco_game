@@ -105,8 +105,8 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
                       shape: BoxShape.circle,
                       gradient: AppColors.goldGradient,
                       boxShadow: [
-                        BoxShadow(color: AppColors.gold.withOpacity(0.4), blurRadius: 30, spreadRadius: 8),
-                        BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 8)),
+                        BoxShadow(color: AppColors.gold.withValues(alpha: 0.4), blurRadius: 30, spreadRadius: 8),
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 8)),
                       ],
                     ),
                     child: const Center(child: Text('🏆', style: TextStyle(fontSize: 56))),
@@ -205,11 +205,11 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 16, fontFamily: 'Baloo2')),
+        Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 16, fontFamily: 'Baloo2')),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
+            color: color.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
@@ -231,7 +231,7 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
           gradient: gradient,
           borderRadius: BorderRadius.circular(27),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4)),
           ],
         ),
         child: Center(
@@ -250,7 +250,7 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
           gradient: gradient,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8),
           ],
         ),
         child: Text(label, style: AppTextStyles.buttonSmall),

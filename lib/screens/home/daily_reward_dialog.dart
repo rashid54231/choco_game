@@ -23,10 +23,10 @@ class DailyRewardDialog extends ConsumerWidget {
             colors: [Color(0xFF2D1B69), Color(0xFF150B35)],
           ),
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: const Color(0xFF6C5CE7).withOpacity(0.5), width: 2),
+          border: Border.all(color: const Color(0xFF6C5CE7).withValues(alpha: 0.5), width: 2),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 40, spreadRadius: 10),
-            BoxShadow(color: const Color(0xFFFFD54F).withOpacity(0.2), blurRadius: 20, spreadRadius: 5),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.6), blurRadius: 40, spreadRadius: 10),
+            BoxShadow(color: const Color(0xFFFFD54F).withValues(alpha: 0.2), blurRadius: 20, spreadRadius: 5),
           ],
         ),
         child: Column(
@@ -40,7 +40,7 @@ class DailyRewardDialog extends ConsumerWidget {
                 shape: BoxShape.circle,
                 gradient: const RadialGradient(colors: [Color(0xFFFFD54F), Color(0xFFFF9A3C)]),
                 boxShadow: [
-                  BoxShadow(color: const Color(0xFFFF9A3C).withOpacity(0.5), blurRadius: 20, spreadRadius: 4),
+                  BoxShadow(color: const Color(0xFFFF9A3C).withValues(alpha: 0.5), blurRadius: 20, spreadRadius: 4),
                 ],
               ),
               child: const Center(
@@ -68,7 +68,7 @@ class DailyRewardDialog extends ConsumerWidget {
               'Thanks for playing today! Here is your daily gift.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 fontSize: 16,
                 fontFamily: 'Baloo2',
               ),
@@ -80,9 +80,9 @@ class DailyRewardDialog extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.2)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -91,7 +91,7 @@ class DailyRewardDialog extends ConsumerWidget {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFFFD54F).withOpacity(0.2),
+                      color: const Color(0xFFFFD54F).withValues(alpha: 0.2),
                     ),
                     child: const Icon(Icons.monetization_on_rounded, color: Color(0xFFFFD54F), size: 30),
                   ),
@@ -123,7 +123,7 @@ class DailyRewardDialog extends ConsumerWidget {
                   gradient: AppColors.greenGradient,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
-                    BoxShadow(color: AppColors.candyGreen.withOpacity(0.5), blurRadius: 16, offset: const Offset(0, 4)),
+                    BoxShadow(color: AppColors.candyGreen.withValues(alpha: 0.5), blurRadius: 16, offset: const Offset(0, 4)),
                   ],
                 ),
                 child: const Center(

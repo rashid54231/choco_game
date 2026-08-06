@@ -61,7 +61,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                         height: 36,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                         ),
                         child: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
                       ),
@@ -96,7 +96,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                               gradient: AppColors.goldGradient,
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
-                                BoxShadow(color: AppColors.gold.withOpacity(0.3), blurRadius: 12),
+                                BoxShadow(color: AppColors.gold.withValues(alpha: 0.3), blurRadius: 12),
                               ],
                             ),
                             child: Row(
@@ -125,20 +125,20 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                                 decoration: BoxDecoration(
                                   gradient: isMe
                                       ? LinearGradient(
-                                          colors: [AppColors.primary.withOpacity(0.2), AppColors.primary.withOpacity(0.08)],
+                                          colors: [AppColors.primary.withValues(alpha: 0.2), AppColors.primary.withValues(alpha: 0.08)],
                                         )
                                       : isTop3
                                           ? LinearGradient(
-                                              colors: [AppColors.gold.withOpacity(0.1), Colors.transparent],
+                                              colors: [AppColors.gold.withValues(alpha: 0.1), Colors.transparent],
                                             )
                                           : null,
                                   color: isMe ? null : AppColors.glassWhite,
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
                                     color: isMe
-                                        ? AppColors.primary.withOpacity(0.5)
+                                        ? AppColors.primary.withValues(alpha: 0.5)
                                         : isTop3
-                                            ? AppColors.gold.withOpacity(0.3)
+                                            ? AppColors.gold.withValues(alpha: 0.3)
                                             : AppColors.glassBorder,
                                     width: isMe ? 1.5 : 1,
                                   ),
@@ -151,7 +151,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                                       height: 32,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        gradient: isTop3 ? AppColors.goldGradient : LinearGradient(colors: [Colors.white.withOpacity(0.1), Colors.white.withOpacity(0.05)]),
+                                        gradient: isTop3 ? AppColors.goldGradient : LinearGradient(colors: [Colors.white.withValues(alpha: 0.1), Colors.white.withValues(alpha: 0.05)]),
                                       ),
                                       child: Center(
                                         child: Text(
@@ -172,7 +172,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                                       height: 36,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: isMe ? AppColors.candy.withOpacity(0.2) : Colors.white.withOpacity(0.08),
+                                        color: isMe ? AppColors.candy.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.08),
                                       ),
                                       child: Icon(
                                         isMe ? Icons.person : Icons.person_outline,

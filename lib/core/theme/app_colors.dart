@@ -118,12 +118,12 @@ class AppColors {
 
   // ─── Shadows ────────────────────────────────────────────
   static List<BoxShadow> glowPink = [
-    BoxShadow(color: primary.withOpacity(0.4), blurRadius: 20, spreadRadius: 2),
+    BoxShadow(color: primary.withValues(alpha: 0.4), blurRadius: 20, spreadRadius: 2),
   ];
   static List<BoxShadow> glowGold = [
-    BoxShadow(color: gold.withOpacity(0.4), blurRadius: 20, spreadRadius: 2),
+    BoxShadow(color: gold.withValues(alpha: 0.4), blurRadius: 20, spreadRadius: 2),
   ];
   static List<BoxShadow> glowPurple = [
-    BoxShadow(color: candyPurple.withOpacity(0.4), blurRadius: 20, spreadRadius: 2),
+    BoxShadow(color: candyPurple.withValues(alpha: 0.4), blurRadius: 20, spreadRadius: 2),
   ];
 }

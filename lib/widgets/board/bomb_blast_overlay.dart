@@ -101,7 +101,7 @@ class _BombBlastPainter extends CustomPainter {
     if (flashProgress < 1.0) {
       final flashOpacity = (1.0 - flashProgress) * 0.6;
       canvas.drawCircle(center, 30 + flashProgress * 20,
-          Paint()..color = Colors.white.withOpacity(flashOpacity));
+          Paint()..color = Colors.white.withValues(alpha: flashOpacity));
     }
 
     // 2) Shockwave ring
@@ -112,7 +112,7 @@ class _BombBlastPainter extends CustomPainter {
         center,
         radius,
         Paint()
-          ..color = color.withOpacity(opacity)
+          ..color = color.withValues(alpha: opacity)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 4.0 * (1.0 - shockwaveProgress),
       );
@@ -121,7 +121,7 @@ class _BombBlastPainter extends CustomPainter {
         center,
         radius * 0.7,
         Paint()
-          ..color = Colors.white.withOpacity(opacity * 0.5)
+          ..color = Colors.white.withValues(alpha: opacity * 0.5)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.0 * (1.0 - shockwaveProgress),
       );
@@ -135,7 +135,7 @@ class _BombBlastPainter extends CustomPainter {
 
       for (final pos in hitPositions) {
         final opacity = (1.0 - beamProgress) * 0.7;
-        beamPaint.color = color.withOpacity(opacity);
+        beamPaint.color = color.withValues(alpha: opacity);
 
         // Beam from center to target
         final dir = pos - center;
@@ -147,7 +147,7 @@ class _BombBlastPainter extends CustomPainter {
 
         // Glow on beam
         beamPaint
-          ..color = Colors.white.withOpacity(opacity * 0.3)
+          ..color = Colors.white.withValues(alpha: opacity * 0.3)
           ..strokeWidth = 8.0 * (1.0 - beamProgress);
         canvas.drawLine(center, beamEnd, beamPaint);
         beamPaint.strokeWidth = 3.0 * (1.0 - beamProgress);
@@ -168,10 +168,10 @@ class _BombBlastPainter extends CustomPainter {
 
         // Glow
         canvas.drawCircle(pos, pSize + 3,
-            Paint()..color = color.withOpacity(opacity * 0.3));
+            Paint()..color = color.withValues(alpha: opacity * 0.3));
         // Core
         canvas.drawCircle(pos, pSize,
-            Paint()..color = _tintParticle(i).withOpacity(opacity));
+            Paint()..color = _tintParticle(i).withValues(alpha: opacity));
       }
     }
 
@@ -180,9 +180,9 @@ class _BombBlastPainter extends CustomPainter {
       final impactOpacity = ((beamProgress - 0.5) * 2) * 0.8;
       for (final pos in hitPositions) {
         canvas.drawCircle(pos, 8 * impactOpacity,
-            Paint()..color = Colors.white.withOpacity(impactOpacity * 0.5));
+            Paint()..color = Colors.white.withValues(alpha: impactOpacity * 0.5));
         canvas.drawCircle(pos, 4 * impactOpacity,
-            Paint()..color = color.withOpacity(impactOpacity));
+            Paint()..color = color.withValues(alpha: impactOpacity));
       }
     }
   }
@@ -191,7 +191,7 @@ class _BombBlastPainter extends CustomPainter {
     final colors = [
       color,
       Colors.white,
-      color.withOpacity(0.7),
+      color.withValues(alpha: 0.7),
       const Color(0xFFFFD54F),
       const Color(0xFFFF6B9D),
     ];

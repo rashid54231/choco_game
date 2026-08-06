@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 import 'package:choco_blast_adventure/core/constants/tile_constants.dart';
 import 'package:choco_blast_adventure/models/tile_model.dart';
 import 'package:choco_blast_adventure/widgets/board/helpers.dart';
 
-/// Renders a single board tile with a subtle idle bounce and squash/stretch
-/// support. Used by the [GameBoard].
+/// Renders a single board tile with a premium glossy design.
 class TileWidget extends StatelessWidget {
   final Tile tile;
   final double size;
@@ -34,37 +32,112 @@ class TileWidget extends StatelessWidget {
       content = Container(
         width: size, height: size,
         decoration: BoxDecoration(
-          color: Colors.brown[700],
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.brown[900]!, width: 2),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.brown[500]!, Colors.brown[800]!],
+          ),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.brown[900]!, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              offset: const Offset(2, 4),
+              blurRadius: 4,
+            ),
+          ],
         ),
         child: Center(child: Icon(Icons.apps, color: Colors.brown[900], size: size * 0.5)),
       );
-    } else {
+    } else if (tile.ingredient != IngredientType.none) {
+      String emoji = tile.ingredient == IngredientType.cherry ? '🍒' : '🌰';
       content = Stack(
         clipBehavior: Clip.none,
         children: [
-          // 3D Mahjong Block Base
           Container(
-            margin: const EdgeInsets.only(bottom: 6, right: 3), // Space for 3D depth
+            margin: const EdgeInsets.only(bottom: 6, right: 3),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF6E5), // Ivory/Beige top
-              borderRadius: BorderRadius.circular(14),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.green[200]!, Colors.green[500]!],
+              ),
+              borderRadius: BorderRadius.circular(16),
               boxShadow: [
-                const BoxShadow(
-                  color: Color(0xFFD3B691), // Side edge
-                  offset: Offset(3, 3),
-                ),
-                const BoxShadow(
-                  color: Color(0xFFC7A985), // Bottom edge
-                  offset: Offset(0, 6),
+                BoxShadow(
+                  color: Colors.green[700]!,
+                  offset: const Offset(0, 6),
                 ),
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  offset: const Offset(3, 8),
+                  color: Colors.black.withValues(alpha: 0.25),
+                  offset: const Offset(2, 8),
+                  blurRadius: 6,
                 ),
               ],
-              border: Border.all(color: const Color(0xFFE5CCAC), width: 1.5),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+            ),
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 6, right: 3),
+              child: Text(
+                emoji,
+                style: TextStyle(fontSize: size * 0.55),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      // Base candy colors for gradient mapping
+      final Color baseColor = tileBaseColor[tile.type!] ?? Colors.white;
+      final Color lightColor = HSLColor.fromColor(baseColor).withLightness(0.7).toColor();
+      final Color darkColor = HSLColor.fromColor(baseColor).withLightness(0.4).toColor();
+
+      content = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Glossy Candy Base
+          Container(
+            margin: const EdgeInsets.only(bottom: 6, right: 3),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  lightColor,
+                  baseColor,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: darkColor,
+                  offset: const Offset(0, 6),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.25),
+                  offset: const Offset(2, 8),
+                  blurRadius: 6,
+                ),
+              ],
+              border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.5),
+            ),
+            // Inner glossy reflection
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.4),
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.1),
+                  ],
+                  stops: const [0.0, 0.4, 1.0],
+                ),
+              ),
             ),
           ),
           // Emoji Icon
@@ -73,7 +146,16 @@ class TileWidget extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 6, right: 3),
               child: Text(
                 tileEmoji[tile.type!] ?? '',
-                style: TextStyle(fontSize: size * 0.55),
+                style: TextStyle(
+                  fontSize: size * 0.55,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      offset: const Offset(1, 2),
+                      blurRadius: 2,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -97,9 +179,16 @@ class TileWidget extends StatelessWidget {
             content,
             Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.4 + (tile.iceLayers * 0.1).clamp(0.0, 0.5)),
-                border: Border.all(color: Colors.lightBlueAccent, width: 2),
-                borderRadius: BorderRadius.circular(14),
+                color: Colors.white.withValues(alpha: 0.3 + (tile.iceLayers * 0.15).clamp(0.0, 0.5)),
+                border: Border.all(color: Colors.lightBlueAccent.withValues(alpha: 0.8), width: 2),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.lightBlueAccent.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  )
+                ],
               ),
             ),
           ],
@@ -107,20 +196,10 @@ class TileWidget extends StatelessWidget {
       }
     }
 
-    final baseDuration = 3500 + ((row * 100) + (col * 150)) % 1500; // 3.5-5s based on row/col
-    final delay = ((row * 150) + (col * 100)).ms; // stagger start
-
     return SizedBox(
       width: size,
       height: size,
       child: content,
-    )
-        .animate(onPlay: (c) => c.repeat(reverse: true), delay: delay)
-        .move(
-          begin: const Offset(0, -5),
-          end: const Offset(0, 5),
-          duration: baseDuration.ms,
-          curve: Curves.easeInOutSine,
-        );
+    );
   }
 }

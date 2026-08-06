@@ -37,7 +37,7 @@ class SpecialTileWidget extends StatelessWidget {
                   offset: Offset(0, 6),
                 ),
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   offset: const Offset(3, 8),
                   blurRadius: 5,
                 ),

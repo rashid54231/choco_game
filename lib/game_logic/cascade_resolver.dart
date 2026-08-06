@@ -46,12 +46,16 @@ class CascadeResolution {
   final List<CascadeStep> steps;
   final int totalCleared;
   final Set<TileType> clearedTypes;
+  final int iceCleared;
+  final int ingredientsDropped;
 
   const CascadeResolution({
     required this.finalBoard,
     required this.steps,
     required this.totalCleared,
     required this.clearedTypes,
+    this.iceCleared = 0,
+    this.ingredientsDropped = 0,
   });
 }
 
@@ -72,8 +76,24 @@ class CascadeResolver {
     final clearedTypes = <TileType>{};
     int cascadeIndex = 0;
     bool brokeChocolateThisTurn = false;
+    int totalIceCleared = 0;
+    int totalIngredientsDropped = 0;
 
     while (true) {
+      bool droppedIngredientThisTurn = false;
+      // First, check if any ingredients are at the bottom. If so, drop them!
+      for (int c = 0; c < BoardHelper.cols(current); c++) {
+        int r = BoardHelper.rows(current) - 1;
+        if (current[r][c].ingredient != IngredientType.none) {
+          current[r][c] = const Tile.empty();
+          totalIngredientsDropped++;
+          droppedIngredientThisTurn = true;
+        }
+      }
+      if (droppedIngredientThisTurn) {
+        current = applyGravity(current);
+        current = refill(current);
+      }
       final match = MatchDetector.findMatches(current);
       final clearSet = <Cell>{...match.clearCells};
 
@@ -91,10 +111,10 @@ class CascadeResolver {
 
       _expandSpecials(current, queue, clearSet, activations);
 
-      if (clearSet.isEmpty && (cascadeIndex > 0 || preActivated == null)) {
+      if (clearSet.isEmpty && !droppedIngredientThisTurn && (cascadeIndex > 0 || preActivated == null)) {
         break;
       }
-      if (clearSet.isEmpty) break;
+      if (clearSet.isEmpty && !droppedIngredientThisTurn) break;
 
       // Record cleared types (for collect goals).
       for (final cell in clearSet) {
@@ -130,6 +150,7 @@ class CascadeResolver {
             iceLayers: t.iceLayers - 1,
             blocker: t.iceLayers - 1 <= 0 ? BlockerType.none : BlockerType.ice,
           );
+          totalIceCleared++;
         } else {
           finalClearSet.add(cell);
         }
@@ -246,13 +267,17 @@ class CascadeResolver {
     }
 
     int total = 0;
-    for (final s in steps) total += s.clearedCount;
+    for (final s in steps) {
+      total += s.clearedCount;
+    }
 
     return CascadeResolution(
       finalBoard: current,
       steps: steps,
       totalCleared: total,
       clearedTypes: clearedTypes,
+      iceCleared: totalIceCleared,
+      ingredientsDropped: totalIngredientsDropped,
     );
   }
 
@@ -273,9 +298,13 @@ class CascadeResolver {
       switch (tile.special) {
         case SpecialKind.striped:
           if (tile.stripedOrientation == StripedOrientation.horizontal) {
-            for (int c = 0; c < BoardHelper.cols(board); c++) affected.add(Cell(cell.r, c));
+            for (int c = 0; c < BoardHelper.cols(board); c++) {
+              affected.add(Cell(cell.r, c));
+            }
           } else {
-            for (int r = 0; r < BoardHelper.rows(board); r++) affected.add(Cell(r, cell.c));
+            for (int r = 0; r < BoardHelper.rows(board); r++) {
+              affected.add(Cell(r, cell.c));
+            }
           }
           break;
         case SpecialKind.wrapped:
@@ -383,7 +412,6 @@ class CascadeResolver {
           columnTiles.add(board[r][c]);
         }
       }
-      int writeR = rows - 1;
       // Because blockers cannot move, we must place blockers first, then drop remaining tiles around them.
       // Actually, a simpler gravity logic is needed when static blockers exist.
       // Let's implement static blocker gravity:

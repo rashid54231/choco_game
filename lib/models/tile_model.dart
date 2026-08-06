@@ -7,6 +7,13 @@ enum BlockerType {
   ice,
 }
 
+/// The kind of ingredient on this tile.
+enum IngredientType {
+  none,
+  cherry,
+  hazelnut,
+}
+
 /// The kind of special behaviour a tile has (none = normal tile).
 enum SpecialKind {
   none,
@@ -31,6 +38,7 @@ class Tile {
   final StripedOrientation? stripedOrientation;
   final BlockerType blocker;
   final int iceLayers;
+  final IngredientType ingredient;
 
   const Tile({
     required this.type,
@@ -38,6 +46,7 @@ class Tile {
     this.stripedOrientation,
     this.blocker = BlockerType.none,
     this.iceLayers = 0,
+    this.ingredient = IngredientType.none,
   });
 
   /// A completely empty tile (used transiently during gravity/refill).
@@ -46,9 +55,10 @@ class Tile {
         special = SpecialKind.none,
         stripedOrientation = null,
         blocker = BlockerType.none,
-        iceLayers = 0;
+        iceLayers = 0,
+        ingredient = IngredientType.none;
 
-  bool get isEmpty => type == null && blocker != BlockerType.chocolate;
+  bool get isEmpty => type == null && blocker != BlockerType.chocolate && ingredient == IngredientType.none;
   bool get isSpecial => special != SpecialKind.none;
   bool get isBlocker => blocker != BlockerType.none;
 
@@ -58,6 +68,7 @@ class Tile {
     StripedOrientation? stripedOrientation,
     BlockerType? blocker,
     int? iceLayers,
+    IngredientType? ingredient,
   }) {
     return Tile(
       type: type ?? this.type,
@@ -65,6 +76,7 @@ class Tile {
       stripedOrientation: stripedOrientation ?? this.stripedOrientation,
       blocker: blocker ?? this.blocker,
       iceLayers: iceLayers ?? this.iceLayers,
+      ingredient: ingredient ?? this.ingredient,
     );
   }
 
@@ -77,10 +89,11 @@ class Tile {
           other.special == special &&
           other.stripedOrientation == stripedOrientation &&
           other.blocker == blocker &&
-          other.iceLayers == iceLayers;
+          other.iceLayers == iceLayers &&
+          other.ingredient == ingredient;
 
   @override
-  int get hashCode => type.hashCode ^ special.hashCode ^ stripedOrientation.hashCode ^ blocker.hashCode ^ iceLayers.hashCode;
+  int get hashCode => type.hashCode ^ special.hashCode ^ stripedOrientation.hashCode ^ blocker.hashCode ^ iceLayers.hashCode ^ ingredient.hashCode;
 
   Map<String, dynamic> toJson() => {
         'type': type?.name,
@@ -88,6 +101,7 @@ class Tile {
         'stripedOrientation': stripedOrientation?.name,
         'blocker': blocker.name,
         'iceLayers': iceLayers,
+        'ingredient': ingredient.name,
       };
 
   factory Tile.fromJson(Map<String, dynamic> json) => Tile(
@@ -98,5 +112,6 @@ class Tile {
             : StripedOrientation.values.byName(json['stripedOrientation'] as String),
         blocker: BlockerType.values.byName(json['blocker'] as String? ?? 'none'),
         iceLayers: json['iceLayers'] as int? ?? 0,
+        ingredient: IngredientType.values.byName(json['ingredient'] as String? ?? 'none'),
       );
 }

@@ -57,6 +57,24 @@ class BoardGenerator {
       }
     }
     
+    // Inject Ingredients
+    if (level.goalType == GoalType.ingredient) {
+      int count = level.goal.ingredientCount ?? 1;
+      int placed = 0;
+      int attempts = 0;
+      while (placed < count && attempts < 100) {
+        // Place in top 2 rows
+        int r = _random.nextInt(min(2, rows));
+        int c = _random.nextInt(cols);
+        if (board[r][c].ingredient == IngredientType.none && board[r][c].blocker == BlockerType.none) {
+          IngredientType type = _random.nextBool() ? IngredientType.cherry : IngredientType.hazelnut;
+          board[r][c] = const Tile.empty().copyWith(ingredient: type);
+          placed++;
+        }
+        attempts++;
+      }
+    }
+    
     // Inject Chocolate for levels > 10 randomly
     if (level.levelNumber > 10) {
       int chocoCount = (level.levelNumber - 10) ~/ 5; // e.g. 1 at 15, 2 at 20
@@ -66,7 +84,7 @@ class BoardGenerator {
       while (placed < chocoCount && attempts < 50) {
         int r = _random.nextInt(rows); // Usually at bottom
         int c = _random.nextInt(cols);
-        if (board[r][c].blocker == BlockerType.none) {
+        if (board[r][c].blocker == BlockerType.none && board[r][c].ingredient == IngredientType.none) {
           // Chocolate replaces the tile entirely (no color)
           board[r][c] = const Tile.empty().copyWith(blocker: BlockerType.chocolate);
           placed++;

@@ -30,8 +30,8 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 600),
-        pageBuilder: (_, __, ___) => const HomeScreen(),
-        transitionsBuilder: (_, anim, __, child) {
+        pageBuilder: (_, _, _) => const HomeScreen(),
+        transitionsBuilder: (_, anim, _, child) {
           return FadeTransition(opacity: anim, child: child);
         },
       ),
@@ -82,71 +82,99 @@ class _SplashScreenState extends State<SplashScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Chocolate piece icon
+                // Premium 3D Strawberry Icon
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: 120,
+                  height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [Color(0xFF8D6E63), Color(0xFF5D4037), Color(0xFF3E2723)],
+                      colors: [Color(0xFFFF8A65), Color(0xFFF4511E), Color(0xFFBF360C)],
                     ),
+                    border: Border.all(color: const Color(0xFFFFD54F), width: 3),
                     boxShadow: [
-                      BoxShadow(color: const Color(0xFFFFD54F).withOpacity(0.3), blurRadius: 30, spreadRadius: 5),
-                      BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 20, offset: const Offset(0, 8)),
+                      BoxShadow(color: const Color(0xFFFF8A65).withValues(alpha: 0.5), blurRadius: 40, spreadRadius: 8),
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.6), blurRadius: 20, offset: const Offset(0, 12)),
                     ],
                   ),
-                  child: const Center(
-                    child: Text('🍫', style: TextStyle(fontSize: 48)),
+                  child: Stack(
+                    children: [
+                      // Inner glossy glass highlight
+                      Positioned(
+                        top: 6,
+                        left: 18,
+                        right: 18,
+                        height: 45,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.35),
+                            borderRadius: BorderRadius.circular(60),
+                          ),
+                        ),
+                      ),
+                      const Center(
+                        child: Text(
+                          '🍓',
+                          style: TextStyle(
+                            fontSize: 64,
+                            shadows: [
+                              Shadow(color: Colors.black54, blurRadius: 8, offset: Offset(0, 4)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ).animate().scale(
                   begin: const Offset(0, 0),
                   end: const Offset(1, 1),
-                  duration: 600.ms,
+                  duration: 800.ms,
                   curve: Curves.elasticOut,
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
-                // "Choco" text
+                // "Choco" text (Premium Gold 3D style)
                 Text(
                   'Choco',
                   style: TextStyle(
                     fontFamily: 'Baloo2',
-                    fontSize: 72,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 76,
+                    fontWeight: FontWeight.w900,
                     foreground: Paint()
                       ..shader = const LinearGradient(
-                        colors: [Color(0xFFFFD54F), Color(0xFFFFA726), Color(0xFFFF6F00)],
+                        colors: [Color(0xFFFFF176), Color(0xFFFFD54F), Color(0xFFFF8F00)],
+                        stops: [0.0, 0.4, 1.0],
                       ).createShader(const Rect.fromLTWH(0, 0, 300, 80)),
                     shadows: const [
-                      Shadow(color: Color(0x66FF6F00), offset: Offset(0, 6), blurRadius: 16),
-                      Shadow(color: Color(0x33000000), offset: Offset(0, 2), blurRadius: 4),
+                      Shadow(color: Color(0xFFFF8F00), offset: Offset(0, 3), blurRadius: 2), // 3D edge
+                      Shadow(color: Color(0x99000000), offset: Offset(0, 10), blurRadius: 16), // Deep shadow
                     ],
                   ),
-                ).animate(delay: 200.ms).fadeIn(duration: 500.ms).slideY(begin: 0.4, end: 0, curve: Curves.easeOutBack),
+                ).animate(delay: 200.ms).fadeIn(duration: 600.ms).slideY(begin: 0.5, end: 0, curve: Curves.easeOutBack),
 
-                // "Blast" text
+                // "Blast" text (Premium Pink 3D style)
                 Text(
                   'Blast',
                   style: TextStyle(
                     fontFamily: 'Baloo2',
-                    fontSize: 72,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 76,
+                    fontWeight: FontWeight.w900,
                     foreground: Paint()
                       ..shader = const LinearGradient(
-                        colors: [Color(0xFFFF6B9D), Color(0xFFE91E7A), Color(0xFFC2185B)],
+                        colors: [Color(0xFFFF80AB), Color(0xFFF50057), Color(0xFF880E4F)],
+                        stops: [0.0, 0.4, 1.0],
                       ).createShader(const Rect.fromLTWH(0, 0, 300, 80)),
                     shadows: const [
-                      Shadow(color: Color(0x66E91E7A), offset: Offset(0, 6), blurRadius: 16),
-                      Shadow(color: Color(0x33000000), offset: Offset(0, 2), blurRadius: 4),
+                      Shadow(color: Color(0xFF880E4F), offset: Offset(0, 3), blurRadius: 2),
+                      Shadow(color: Color(0x99000000), offset: Offset(0, 10), blurRadius: 16),
                     ],
                   ),
-                ).animate(delay: 400.ms).fadeIn(duration: 500.ms).slideY(begin: 0.4, end: 0, curve: Curves.easeOutBack),
+                ).animate(delay: 400.ms).fadeIn(duration: 600.ms).slideY(begin: 0.5, end: 0, curve: Curves.easeOutBack),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
 
                 // "Adventure" badge
                 Container(
@@ -157,7 +185,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
-                      BoxShadow(color: const Color(0xFF7B1FA2).withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4)),
+                      BoxShadow(color: const Color(0xFF7B1FA2).withValues(alpha: 0.4), blurRadius: 12, offset: const Offset(0, 4)),
                     ],
                   ),
                   child: const Text(
@@ -186,7 +214,7 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                 ),
               ),
             ).animate(delay: 1000.ms).fadeIn(duration: 400.ms),
@@ -217,8 +245,8 @@ class _SplashScreenState extends State<SplashScreen>
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: color.withOpacity(0.3),
-          boxShadow: [BoxShadow(color: color.withOpacity(0.2), blurRadius: 8)],
+          color: color.withValues(alpha: 0.3),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 8)],
         ),
       ).animate(
         onPlay: (c) => c.repeat(reverse: true),

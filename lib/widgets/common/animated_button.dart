@@ -48,12 +48,12 @@ class AnimatedButton extends StatelessWidget {
         height: height,
         decoration: BoxDecoration(
           gradient: enabled ? gradient : null,
-          color: enabled ? (gradient == null ? color : null) : Colors.white.withOpacity(0.1),
+          color: enabled ? (gradient == null ? color : null) : Colors.white.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: enabled
               ? [
                   BoxShadow(
-                    color: (gradient != null ? AppColors.primary : color).withOpacity(0.3),
+                    color: (gradient != null ? AppColors.primary : color).withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),

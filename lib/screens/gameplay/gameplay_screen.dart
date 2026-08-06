@@ -152,7 +152,7 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                           Container(
                             padding: const EdgeInsets.all(5),
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(24),
                             ),
                             child: GameBoard(level: widget.level, boardSize: boardSize),
@@ -198,9 +198,9 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
             colors: [Color(0xFF2D1B69), Color(0xFF1E1145)],
           ),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFF6C5CE7).withOpacity(0.3), width: 1),
+          border: Border.all(color: const Color(0xFF6C5CE7).withValues(alpha: 0.3), width: 1),
           boxShadow: [
-            BoxShadow(color: const Color(0xFF1E1145).withOpacity(0.6), blurRadius: 12, offset: const Offset(0, 4)),
+            BoxShadow(color: const Color(0xFF1E1145).withValues(alpha: 0.6), blurRadius: 12, offset: const Offset(0, 4)),
           ],
         ),
         child: Row(
@@ -216,13 +216,13 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                 height: 36,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.15),
-                  border: Border.all(color: Colors.white.withOpacity(0.25), width: 1),
+                  color: Colors.white.withValues(alpha: 0.15),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1),
                 ),
                 child: const Icon(Icons.pause_rounded, color: Colors.white, size: 18),
               ).animate(onPlay: (c) => c.repeat(reverse: true)).boxShadow(
-                begin: BoxShadow(color: Colors.white.withOpacity(0.0), blurRadius: 0),
-                end: BoxShadow(color: Colors.white.withOpacity(0.4), blurRadius: 10, spreadRadius: 2),
+                begin: BoxShadow(color: Colors.white.withValues(alpha: 0.0), blurRadius: 0),
+                end: BoxShadow(color: Colors.white.withValues(alpha: 0.4), blurRadius: 10, spreadRadius: 2),
                 duration: 3200.ms,
                 curve: Curves.easeInOut,
               ),
@@ -247,7 +247,7 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
               children: [
                 Text(
                   level.hasMoves ? 'MOVES' : 'TIME',
-                  style: TextStyle(color: Colors.white.withOpacity(0.5), fontWeight: FontWeight.w600, fontSize: 9, letterSpacing: 1),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontWeight: FontWeight.w600, fontSize: 9, letterSpacing: 1),
                 ),
                 Text(
                   '${level.hasMoves ? game.movesLeft : game.timeLeftSeconds}',
@@ -289,7 +289,7 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                   end: Alignment.bottomRight,
                   colors: [Color(0xFF8D6E63), Color(0xFF5D4037)],
                 ),
-                border: Border.all(color: Colors.white.withOpacity(0.25), width: 1.5),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1.5),
               ),
               child: Center(
                 child: Text(
@@ -303,25 +303,13 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
       ).animate(onPlay: (c) => c.loop()).shimmer(
         duration: 2500.ms,
         delay: 3500.ms,
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         blendMode: BlendMode.srcATop,
       ),
     );
   }
 
-  String _goalText(GameState game) {
-    final l = widget.level;
-    switch (l.goalType) {
-      case GoalType.score:
-        return '${game.goal.score} / ${l.goal.score ?? 0}';
-      case GoalType.collect:
-        return '${game.goal.collectedOf(l.goal.color!)} / ${l.goal.count ?? 0}';
-      case GoalType.jelly:
-        return '${game.goal.jellyCleared} / ${l.goal.jellyCount ?? 0}';
-      case GoalType.ingredient:
-        return '${game.goal.ingredientsDropped} / ${l.goal.ingredientCount ?? 0}';
-    }
-  }
+
 
   /// Goal panel shown below the game board — clear progress + star targets.
   Widget _goalPanel(GameState game) {
@@ -376,9 +364,9 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
       margin: const EdgeInsets.symmetric(horizontal: 12),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1145).withOpacity(0.9),
+        color: const Color(0xFF1E1145).withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: goalColor.withOpacity(0.3), width: 1),
+        border: Border.all(color: goalColor.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -391,7 +379,7 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                 height: 28,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: goalColor.withOpacity(0.2),
+                  color: goalColor.withValues(alpha: 0.2),
                 ),
                 child: Icon(goalIcon, color: goalColor, size: 16),
               ),
@@ -411,7 +399,7 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: goalColor.withOpacity(0.2),
+                    color: goalColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text('DONE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 10, fontFamily: 'Baloo2')),
@@ -427,14 +415,14 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
               child: Stack(
                 children: [
                   // Background
-                  Container(color: Colors.white.withOpacity(0.1)),
+                  Container(color: Colors.white.withValues(alpha: 0.1)),
                   // Fill
                   FractionallySizedBox(
                     widthFactor: progress,
                     child: Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [goalColor.withOpacity(0.8), goalColor],
+                          colors: [goalColor.withValues(alpha: 0.8), goalColor],
                         ),
                       ),
                     ).animate(onPlay: (c) => c.repeat(reverse: true))
@@ -445,13 +433,13 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                     left: (s1 / (l.goal.score ?? s3)).clamp(0.0, 1.0) * (MediaQuery.of(context).size.width - 80),
                     top: 0,
                     bottom: 0,
-                    child: Container(width: 2, color: Colors.white.withOpacity(0.4)),
+                    child: Container(width: 2, color: Colors.white.withValues(alpha: 0.4)),
                   ),
                   Positioned(
                     left: (s2 / (l.goal.score ?? s3)).clamp(0.0, 1.0) * (MediaQuery.of(context).size.width - 80),
                     top: 0,
                     bottom: 0,
-                    child: Container(width: 2, color: Colors.white.withOpacity(0.4)),
+                    child: Container(width: 2, color: Colors.white.withValues(alpha: 0.4)),
                   ),
                 ],
               ),
@@ -516,9 +504,9 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
               margin: const EdgeInsets.only(bottom: 6),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFFFF9A3C).withOpacity(0.2),
+                color: const Color(0xFFFF9A3C).withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFFF9A3C).withOpacity(0.5)),
+                border: Border.all(color: const Color(0xFFFF9A3C).withValues(alpha: 0.5)),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
@@ -537,9 +525,9 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
               margin: const EdgeInsets.only(bottom: 6),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF42A5F5).withOpacity(0.2),
+                color: const Color(0xFF42A5F5).withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFF42A5F5).withOpacity(0.5)),
+                border: Border.all(color: const Color(0xFF42A5F5).withValues(alpha: 0.5)),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
@@ -556,9 +544,9 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
           Container(
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.08),
+              color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
             ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -659,16 +647,16 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                   ? const LinearGradient(colors: [Color(0xFFE91E7A), Color(0xFFFF6B9D)])
                   : (enabled
                       ? const LinearGradient(colors: [Color(0xFFFFC773), Color(0xFFFF9A3C)])
-                      : LinearGradient(colors: [Colors.white.withOpacity(0.18), Colors.white.withOpacity(0.08)])),
+                      : LinearGradient(colors: [Colors.white.withValues(alpha: 0.18), Colors.white.withValues(alpha: 0.08)])),
               boxShadow: (enabled || highlighted)
-                  ? [BoxShadow(color: (highlighted ? const Color(0xFFFF6B9D) : const Color(0xFFFF9A3C)).withOpacity(0.35), blurRadius: 8, offset: const Offset(0, 3))]
+                  ? [BoxShadow(color: (highlighted ? const Color(0xFFFF6B9D) : const Color(0xFFFF9A3C)).withValues(alpha: 0.35), blurRadius: 8, offset: const Offset(0, 3))]
                   : [],
               border: highlighted ? Border.all(color: Colors.white, width: 1.5) : null,
             ),
             child: Icon(icon, color: (enabled || highlighted) ? (highlighted ? Colors.white : const Color(0xFF3E2723)) : Colors.white54, size: 20),
           ),
           const SizedBox(height: 2),
-          Text(label, textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 8, fontWeight: FontWeight.w600, height: 1.1)),
+          Text(label, textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 8, fontWeight: FontWeight.w600, height: 1.1)),
         ],
       ),
     );
@@ -685,8 +673,8 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
           decoration: BoxDecoration(
             gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF2D1B69), Color(0xFF150B35)]),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFF6C5CE7).withOpacity(0.2)),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 30)],
+            border: Border.all(color: const Color(0xFF6C5CE7).withValues(alpha: 0.2)),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.6), blurRadius: 30)],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -735,8 +723,8 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
           decoration: BoxDecoration(
             gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF2D1B69), Color(0xFF150B35)]),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFF6C5CE7).withOpacity(0.2)),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 30)],
+            border: Border.all(color: const Color(0xFF6C5CE7).withValues(alpha: 0.2)),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.6), blurRadius: 30)],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -786,9 +774,9 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [color, color.withOpacity(0.8)]),
+          gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.8)]),
           borderRadius: BorderRadius.circular(14),
-          boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 3))],
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3))],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

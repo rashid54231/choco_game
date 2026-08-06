@@ -53,9 +53,9 @@ class _LevelFailedScreenState extends State<LevelFailedScreen> {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [AppColors.candyOrange.withOpacity(0.3), AppColors.candyOrange.withOpacity(0.1)],
+                      colors: [AppColors.candyOrange.withValues(alpha: 0.3), AppColors.candyOrange.withValues(alpha: 0.1)],
                     ),
-                    border: Border.all(color: AppColors.candyOrange.withOpacity(0.3), width: 2),
+                    border: Border.all(color: AppColors.candyOrange.withValues(alpha: 0.3), width: 2),
                   ),
                   child: const Center(
                     child: Text('😔', style: TextStyle(fontSize: 48)),
@@ -71,7 +71,7 @@ class _LevelFailedScreenState extends State<LevelFailedScreen> {
 
                 Text(
                   "Don't give up! Try again.",
-                  style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 16, fontFamily: 'Baloo2'),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 16, fontFamily: 'Baloo2'),
                 ).animate(delay: 300.ms).fadeIn(),
 
                 const SizedBox(height: 24),
@@ -92,7 +92,7 @@ class _LevelFailedScreenState extends State<LevelFailedScreen> {
                       const SizedBox(width: 8),
                       Text(
                         'Score: ${widget.score}',
-                        style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 18, fontFamily: 'Baloo2', fontWeight: FontWeight.w600),
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 18, fontFamily: 'Baloo2', fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
@@ -112,7 +112,7 @@ class _LevelFailedScreenState extends State<LevelFailedScreen> {
                       gradient: AppColors.pinkButtonGradient,
                       borderRadius: BorderRadius.circular(27),
                       boxShadow: [
-                        BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 16, offset: const Offset(0, 6)),
+                        BoxShadow(color: AppColors.primary.withValues(alpha: 0.4), blurRadius: 16, offset: const Offset(0, 6)),
                       ],
                     ),
                     child: const Row(
@@ -141,7 +141,7 @@ class _LevelFailedScreenState extends State<LevelFailedScreen> {
                       gradient: AppColors.purpleGradient,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
-                        BoxShadow(color: AppColors.candyPurple.withOpacity(0.3), blurRadius: 12),
+                        BoxShadow(color: AppColors.candyPurple.withValues(alpha: 0.3), blurRadius: 12),
                       ],
                     ),
                     child: const Center(

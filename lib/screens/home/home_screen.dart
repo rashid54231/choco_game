@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -64,14 +65,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // ── Animated gradient background ──────────────────
+          // ── Premium Blurred Background ──────────────────
           Container(
+            width: double.infinity,
+            height: double.infinity,
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF1A0533), Color(0xFF0D0221), Color(0xFF0A0118)],
+              image: DecorationImage(
+                image: AssetImage('assets/images/candy_map_bg.png'),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(Color(0x770D0221), BlendMode.darken),
               ),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(color: Colors.black.withValues(alpha: 0.1)),
             ),
           ),
 
@@ -91,53 +98,71 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                 const Spacer(flex: 2),
 
-                // ── Buttons ──────────────────────────────────
-                Center(
-                  child: _buildButton(
-                    label: 'Play',
-                    gradient: AppColors.pinkButtonGradient,
-                    shadow: AppColors.primary,
-                    icon: Icons.play_arrow_rounded,
-                    width: screenW * 0.65,
-                    height: 60,
-                    delay: 500,
-                    onTap: () => _playGame(context),
+                // ── Glassmorphism Button Panel ────────────────────────────────
+                Container(
+                  width: screenW * 0.85,
+                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(40),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 24, offset: const Offset(0, 10)),
+                    ],
                   ),
-                ),
-
-                const SizedBox(height: 16),
-
-                Center(
-                  child: _buildButton(
-                    label: 'Level Map',
-                    gradient: AppColors.greenGradient,
-                    shadow: AppColors.candyGreen,
-                    icon: Icons.map_rounded,
-                    width: screenW * 0.55,
-                    height: 50,
-                    delay: 650,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LevelMapScreen()),
-                    ),
+                  child: Column(
+                    children: [
+                      _buildButton(
+                        label: 'Play',
+                        gradient: const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFFFF8A65), Color(0xFFF4511E)],
+                        ),
+                        shadow: const Color(0xFFBF360C),
+                        icon: Icons.play_arrow_rounded,
+                        width: double.infinity,
+                        height: 58,
+                        delay: 500,
+                        onTap: () => _playGame(context),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildButton(
+                        label: 'Level Map',
+                        gradient: const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFF81C784), Color(0xFF388E3C)],
+                        ),
+                        shadow: const Color(0xFF1B5E20),
+                        icon: Icons.map_rounded,
+                        width: double.infinity,
+                        height: 58,
+                        delay: 650,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const LevelMapScreen()),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildButton(
+                        label: 'Retrieve Progress',
+                        gradient: const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFF64B5F6), Color(0xFF1976D2)],
+                        ),
+                        shadow: const Color(0xFF0D47A1),
+                        icon: Icons.cloud_download_rounded,
+                        width: double.infinity,
+                        height: 58,
+                        delay: 800,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-
-                const SizedBox(height: 16),
-
-                Center(
-                  child: _buildButton(
-                    label: 'Retrieve Progress',
-                    gradient: AppColors.blueGradient,
-                    shadow: AppColors.candyBlue,
-                    icon: Icons.cloud_download_rounded,
-                    width: screenW * 0.55,
-                    height: 50,
-                    delay: 800,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    ),
-                  ),
-                ),
+                ).animate(delay: 400.ms).fadeIn().slideY(begin: 0.2, end: 0, curve: Curves.easeOutBack),
 
                 const Spacer(flex: 2),
 
@@ -155,7 +180,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         color: AppColors.glassWhite,
                         border: Border.all(color: AppColors.glassBorder, width: 1.5),
                         boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 12),
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 12),
                         ],
                       ),
                       child: const Icon(Icons.settings_rounded, color: Colors.white70, size: 24),
@@ -175,40 +200,64 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildLogo() {
     return Column(
       children: [
-        // Chocolate icon
+        // Premium 3D Strawberry Icon
         Container(
-          width: 80,
-          height: 80,
+          width: 90,
+          height: 90,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF8D6E63), Color(0xFF5D4037), Color(0xFF3E2723)],
+              colors: [Color(0xFFFF8A65), Color(0xFFF4511E), Color(0xFFBF360C)],
             ),
+            border: Border.all(color: const Color(0xFFFFD54F), width: 2.5),
             boxShadow: [
-              BoxShadow(color: const Color(0xFFFFD54F).withOpacity(0.25), blurRadius: 24, spreadRadius: 4),
-              BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 6)),
+              BoxShadow(color: const Color(0xFFFF8A65).withValues(alpha: 0.5), blurRadius: 30, spreadRadius: 6),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.6), blurRadius: 16, offset: const Offset(0, 8)),
             ],
           ),
-          child: const Center(child: Text('🍫', style: TextStyle(fontSize: 40))),
+          child: Stack(
+            children: [
+              // Inner glossy highlight
+              Positioned(
+                top: 4,
+                left: 14,
+                right: 14,
+                height: 35,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(45),
+                  ),
+                ),
+              ),
+              const Center(
+                child: Text('🍓', style: TextStyle(fontSize: 48, shadows: [
+                  Shadow(color: Colors.black54, blurRadius: 6, offset: Offset(0, 3)),
+                ])),
+              ),
+            ],
+          ),
         ).animate(delay: 200.ms).fadeIn(duration: 500.ms).scale(begin: const Offset(0, 0), end: const Offset(1, 1), curve: Curves.elasticOut),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
 
         // Title
         Text(
           'Choco',
           style: TextStyle(
             fontFamily: 'Baloo2',
-            fontSize: 52,
-            fontWeight: FontWeight.w800,
+            fontSize: 56,
+            fontWeight: FontWeight.w900,
             foreground: Paint()
               ..shader = const LinearGradient(
-                colors: [Color(0xFFFFD54F), Color(0xFFFFA726)],
+                colors: [Color(0xFFFFF176), Color(0xFFFFD54F), Color(0xFFFF8F00)],
+                stops: [0.0, 0.4, 1.0],
               ).createShader(const Rect.fromLTWH(0, 0, 250, 60)),
             shadows: const [
-              Shadow(color: Color(0x44FFA726), offset: Offset(0, 4), blurRadius: 12),
+              Shadow(color: Color(0xFFFF8F00), offset: Offset(0, 3), blurRadius: 2),
+              Shadow(color: Color(0x99000000), offset: Offset(0, 8), blurRadius: 12),
             ],
           ),
         ).animate(delay: 300.ms).fadeIn().slideY(begin: 0.3, end: 0),
@@ -217,19 +266,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           'Blast',
           style: TextStyle(
             fontFamily: 'Baloo2',
-            fontSize: 52,
-            fontWeight: FontWeight.w800,
+            fontSize: 56,
+            fontWeight: FontWeight.w900,
             foreground: Paint()
               ..shader = const LinearGradient(
-                colors: [Color(0xFFFF6B9D), Color(0xFFE91E7A)],
+                colors: [Color(0xFFFF80AB), Color(0xFFF50057), Color(0xFF880E4F)],
+                stops: [0.0, 0.4, 1.0],
               ).createShader(const Rect.fromLTWH(0, 0, 250, 60)),
             shadows: const [
-              Shadow(color: Color(0x44E91E7A), offset: Offset(0, 4), blurRadius: 12),
+              Shadow(color: Color(0xFF880E4F), offset: Offset(0, 3), blurRadius: 2),
+              Shadow(color: Color(0x99000000), offset: Offset(0, 8), blurRadius: 12),
             ],
           ),
         ).animate(delay: 400.ms).fadeIn().slideY(begin: 0.3, end: 0),
 
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
 
         // "Adventure" tag
         Container(
@@ -238,7 +289,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             gradient: AppColors.purpleGradient,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
-              BoxShadow(color: AppColors.candyPurple.withOpacity(0.3), blurRadius: 10),
+              BoxShadow(color: AppColors.candyPurple.withValues(alpha: 0.3), blurRadius: 10),
             ],
           ),
           child: const Text(
@@ -277,23 +328,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         decoration: BoxDecoration(
           gradient: gradient,
           borderRadius: BorderRadius.circular(height / 2),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2), // Glossy border highlight
           boxShadow: [
-            BoxShadow(color: shadow.withOpacity(0.4), blurRadius: 16, offset: const Offset(0, 6)),
-            BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 3)),
+            BoxShadow(color: shadow.withValues(alpha: 0.6), blurRadius: 0, offset: const Offset(0, 6)), // Solid 3D edge
+            BoxShadow(color: shadow.withValues(alpha: 0.4), blurRadius: 12, offset: const Offset(0, 10)), // Soft shadow
           ],
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Stack(
           children: [
-            Icon(icon, color: Colors.white, size: 24),
-            const SizedBox(width: 10),
-            Text(
-              label,
-              style: const TextStyle(
-                fontFamily: 'Baloo2',
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
+            // Inner glossy highlight
+            Positioned(
+              top: 2,
+              left: 20,
+              right: 20,
+              height: height * 0.4,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(height / 2),
+                ),
+              ),
+            ),
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, color: Colors.white, size: 28, shadows: const [Shadow(color: Colors.black45, blurRadius: 4, offset: Offset(0, 2))]),
+                  const SizedBox(width: 12),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontFamily: 'Baloo2',
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(color: Colors.black45, blurRadius: 4, offset: Offset(0, 2)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -330,7 +404,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: RadialGradient(
-              colors: [color.withOpacity(0.4), color.withOpacity(0.1)],
+              colors: [color.withValues(alpha: 0.4), color.withValues(alpha: 0.1)],
             ),
           ),
         ).animate(
@@ -347,7 +421,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _playGame(BuildContext context) async {
     final nextLevel = await CacheService.instance.getNextLevel();
-    if (!mounted) return;
+    if (!context.mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => GameplayScreen(level: LevelModel.level(nextLevel)),

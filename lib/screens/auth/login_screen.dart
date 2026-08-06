@@ -73,7 +73,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         colors: [Color(0xFF8D6E63), Color(0xFF5D4037)],
                       ),
                       boxShadow: [
-                        BoxShadow(color: AppColors.gold.withOpacity(0.2), blurRadius: 20),
+                        BoxShadow(color: AppColors.gold.withValues(alpha: 0.2), blurRadius: 20),
                       ],
                     ),
                     child: const Center(child: Text('🍫', style: TextStyle(fontSize: 36))),
@@ -101,7 +101,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: AppColors.error.withOpacity(0.15),
+                              color: AppColors.error.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
@@ -153,10 +153,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         labelStyle: const TextStyle(color: Colors.white54, fontFamily: 'Baloo2'),
         prefixIcon: Icon(icon, color: Colors.white38, size: 20),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.06),
+        fillColor: Colors.white.withValues(alpha: 0.06),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -176,7 +176,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           gradient: gradient,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 3)),
           ],
         ),
         child: Center(
