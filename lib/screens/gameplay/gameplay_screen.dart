@@ -129,7 +129,7 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFA07A), Color(0xFFFF7E5F), Color(0xFFFEB47B)],
+            colors: [Color(0xFF2E0854), Color(0xFF150538)],
           ),
         ),
         child: Stack(
@@ -364,9 +364,13 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
       margin: const EdgeInsets.symmetric(horizontal: 12),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1145).withValues(alpha: 0.9),
+        color: const Color(0xFF1E1145).withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: goalColor.withValues(alpha: 0.3), width: 1),
+        border: Border.all(color: goalColor.withValues(alpha: 0.4), width: 1.5),
+        boxShadow: [
+          BoxShadow(color: goalColor.withValues(alpha: 0.2), blurRadius: 20),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -791,7 +795,30 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
   }
 
   List<Widget> _buildBackgroundDecorations() {
-    return [];
+    final colors = [const Color(0xFFFF6B9D), const Color(0xFFAB47BC), const Color(0xFF42A5F5), const Color(0xFFFFD54F)];
+    final screenW = MediaQuery.of(context).size.width;
+    final screenH = MediaQuery.of(context).size.height;
+    return List.generate(8, (i) {
+      final color = colors[i % colors.length];
+      final size = 100.0 + (i * 30) % 150;
+      return Positioned(
+        left: (i * 80) % screenW - 50,
+        top: (i * 150) % screenH - 50,
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color.withValues(alpha: 0.05),
+            boxShadow: [
+              BoxShadow(color: color.withValues(alpha: 0.15), blurRadius: 40, spreadRadius: 10),
+            ],
+          ),
+        ).animate(onPlay: (c) => c.loop(reverse: true))
+         .scale(begin: const Offset(1, 1), end: const Offset(1.2, 1.2), duration: Duration(milliseconds: 3000 + i * 500))
+         .move(begin: const Offset(0, 0), end: Offset((i%2==0?20.0:-20.0), (i%3==0?20.0:-20.0)), duration: Duration(milliseconds: 4000 + i * 400)),
+      );
+    });
   }
 }
 //hello

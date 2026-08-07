@@ -32,6 +32,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
   Offset? _panStart;
   Offset? _panEnd;
   bool _busy = false;
+  bool _swapTriggered = false;
 
   double get cellSize => widget.boardSize / widget.level.gridSize;
 
@@ -94,9 +95,10 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                   cellSize: cellSize,
                   onPanStart: (d) { 
                     _dragStartR = r; _dragStartC = c; _panStart = d.localPosition; 
+                    _swapTriggered = false;
                   },
-                  onPanUpdate: (d) { _panEnd = d.localPosition; },
-                  onPanEnd: (d) => _handlePanEnd(),
+                  onPanUpdate: _handlePanUpdate,
+                  onPanEnd: _handlePanEnd,
                   onTapHammer: () => _tapHammer(r, c),
                   onTapSpecial: () => _tapSpecial(r, c),
                 );
@@ -146,27 +148,44 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     }
   }
 
-  void _handlePanEnd() {
-    if (_dragStartR == null || _dragStartC == null || _panStart == null || _panEnd == null) return;
-
-    final dx = _panEnd!.dx - _panStart!.dx;
-    final dy = _panEnd!.dy - _panStart!.dy;
-
-    // Ignore tiny drags (taps)
-    if (dx.abs() < 8 && dy.abs() < 8) {
-      _resetDrag();
-      return;
+  void _handlePanUpdate(DragUpdateDetails details) {
+    if (_busy) return;
+    _panEnd = details.localPosition;
+    
+    // Trigger swap immediately mid-swipe for extreme responsiveness
+    if (!_swapTriggered && _panStart != null && _dragStartR != null && _dragStartC != null) {
+      final dx = _panEnd!.dx - _panStart!.dx;
+      final dy = _panEnd!.dy - _panStart!.dy;
+      if (dx.abs() > 20 || dy.abs() > 20) {
+        _swapTriggered = true;
+        int tr = _dragStartR!, tc = _dragStartC!;
+        if (dx.abs() > dy.abs()) {
+          tc += dx > 0 ? 1 : -1;
+        } else {
+          tr += dy > 0 ? 1 : -1;
+        }
+        _trySwap(_dragStartR!, _dragStartC!, tr, tc);
+      }
     }
+  }
 
-    int tr = _dragStartR!, tc = _dragStartC!;
-    if (dx.abs() > dy.abs()) {
-      // Horizontal swipe
-      tc += dx > 0 ? 1 : -1;
-    } else {
-      // Vertical swipe
-      tr += dy > 0 ? 1 : -1;
+  void _handlePanEnd(DragEndDetails details) {
+    if (_busy) return;
+    if (!_swapTriggered && _dragStartR != null && _dragStartC != null && _panStart != null && _panEnd != null) {
+      final dx = _panEnd!.dx - _panStart!.dx;
+      final dy = _panEnd!.dy - _panStart!.dy;
+
+      // Ignore tiny drags (taps)
+      if (dx.abs() >= 8 || dy.abs() >= 8) {
+        int tr = _dragStartR!, tc = _dragStartC!;
+        if (dx.abs() > dy.abs()) {
+          tc += dx > 0 ? 1 : -1;
+        } else {
+          tr += dy > 0 ? 1 : -1;
+        }
+        _trySwap(_dragStartR!, _dragStartC!, tr, tc);
+      }
     }
-    _trySwap(_dragStartR!, _dragStartC!, tr, tc);
     _resetDrag();
   }
 
@@ -175,6 +194,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     _dragStartC = null;
     _panStart = null;
     _panEnd = null;
+    _swapTriggered = false;
   }
 
   void _tapHammer(int r, int c) async {
@@ -249,7 +269,6 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     if (!valid) {
       AudioService.instance.playInvalid();
     } else {
-      AudioService.instance.playMatch();
       if (notifier.snapshot.combo >= 3) HapticFeedback.mediumImpact();
     }
     if (valid && !notifier.snapshot.isComplete && !notifier.snapshot.isFailed) {
@@ -297,7 +316,7 @@ class CellWidget extends ConsumerWidget {
         onPanEnd: onPanEnd,
         child: TweenAnimationBuilder<double>(
           tween: Tween(begin: 1.0, end: 1.15),
-          duration: const Duration(milliseconds: 15),
+          duration: const Duration(milliseconds: 120),
           curve: Curves.easeOut,
           builder: (_, s, _) => Transform.scale(
             scale: s,
@@ -317,7 +336,7 @@ class CellWidget extends ConsumerWidget {
         children: [
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 1.0, end: 0.0),
-            duration: const Duration(milliseconds: 20),
+            duration: const Duration(milliseconds: 150),
             curve: Curves.easeInQuad,
             builder: (_, s, _) => Transform.scale(
               scale: s,
@@ -349,7 +368,7 @@ class CellWidget extends ConsumerWidget {
         onPanEnd: onPanEnd,
         child: TweenAnimationBuilder<Offset>(
           tween: Tween(begin: Offset(0, -px), end: Offset.zero),
-          duration: const Duration(milliseconds: 30),
+          duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
           builder: (_, o, _) => Transform.translate(
             offset: o,
@@ -368,7 +387,7 @@ class CellWidget extends ConsumerWidget {
         onPanEnd: onPanEnd,
         child: TweenAnimationBuilder<Offset>(
           tween: Tween(begin: Offset(0, -from - cellSize), end: Offset.zero),
-          duration: const Duration(milliseconds: 25),
+          duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutBack,
           builder: (_, o, _) => Transform.translate(
             offset: o,
@@ -384,7 +403,6 @@ class CellWidget extends ConsumerWidget {
           ? onTapHammer
           : (tile.isSpecial ? onTapSpecial : null),
       onPanStart: (d) {
-        AudioService.instance.playButton();
         onPanStart(d);
       },
       onPanUpdate: onPanUpdate,

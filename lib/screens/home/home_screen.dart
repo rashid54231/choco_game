@@ -105,9 +105,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(40),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 24, offset: const Offset(0, 10)),
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 30, offset: const Offset(0, 15)),
+                      BoxShadow(color: Colors.white.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5)),
                     ],
                   ),
                   child: Column(
@@ -260,7 +261,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Shadow(color: Color(0x99000000), offset: Offset(0, 8), blurRadius: 12),
             ],
           ),
-        ).animate(delay: 300.ms).fadeIn().slideY(begin: 0.3, end: 0),
+        ).animate(delay: 300.ms).fadeIn().slideY(begin: 0.3, end: 0)
+         .animate(onPlay: (c) => c.repeat(reverse: true)).moveY(begin: -2, end: 2, duration: 2.seconds),
 
         Text(
           'Blast',
@@ -278,7 +280,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Shadow(color: Color(0x99000000), offset: Offset(0, 8), blurRadius: 12),
             ],
           ),
-        ).animate(delay: 400.ms).fadeIn().slideY(begin: 0.3, end: 0),
+        ).animate(delay: 400.ms).fadeIn().slideY(begin: 0.3, end: 0)
+         .animate(onPlay: (c) => c.repeat(reverse: true)).moveY(begin: -2, end: 2, duration: 2.seconds, delay: 500.ms),
 
         const SizedBox(height: 8),
 
@@ -302,7 +305,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               letterSpacing: 5,
             ),
           ),
-        ).animate(delay: 500.ms).fadeIn().scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1)),
+        ).animate(delay: 500.ms).fadeIn().scale(begin: const Offset(0.5, 0.5), end: const Offset(1, 1), curve: Curves.elasticOut)
+         .animate(onPlay: (c) => c.repeat(reverse: true))
+         .scale(begin: const Offset(1, 1), end: const Offset(1.05, 1.05), duration: 1.seconds),
       ],
     );
   }
@@ -377,8 +382,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         .animate(delay: Duration(milliseconds: delay))
         .fadeIn(duration: 500.ms)
         .slideY(begin: 0.3, end: 0, curve: Curves.easeOutBack)
-        .then()
-        .shimmer(duration: 2000.ms, delay: 1500.ms);
+        .animate(onPlay: (c) => c.repeat())
+        .shimmer(duration: 1500.ms, color: Colors.white.withValues(alpha: 0.5))
+        .then(delay: 2000.ms);
   }
 
   List<Widget> _buildFloatingCandy() {

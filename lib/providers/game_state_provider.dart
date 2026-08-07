@@ -269,32 +269,32 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final totalSteps = (_pendingResolution?.steps.length ?? 1);
     final stepIndex = step.cascadeIndex;
 
-    // Phase 1: Flash (15ms delay for 15ms tween)
+    // Phase 1: Flash (120ms delay for 120ms tween)
     state = state.copyWith(
       animState: BoardAnimState.flash(step.clearedCells, stepIndex, totalSteps),
     );
-    await Future.delayed(const Duration(milliseconds: 15));
+    await Future.delayed(const Duration(milliseconds: 120));
 
-    // Phase 2: Pop (20ms delay for 20ms tween)
+    // Phase 2: Pop (150ms delay for 150ms tween)
     AudioService.instance.playMatch();
     state = state.copyWith(
       animState: BoardAnimState.pop(step.clearedCells, stepIndex, totalSteps),
     );
-    await Future.delayed(const Duration(milliseconds: 20));
+    await Future.delayed(const Duration(milliseconds: 150));
 
-    // Phase 3: Gravity + board swap (35ms delay for 30ms tween)
+    // Phase 3: Gravity + board swap (250ms delay for 250ms tween)
     AudioService.instance.playSwap();
     state = state.copyWith(
       board: step.boardAfter,
       animState: BoardAnimState.fall(step.fallDistances, stepIndex, totalSteps),
     );
-    await Future.delayed(const Duration(milliseconds: 35));
+    await Future.delayed(const Duration(milliseconds: 250));
 
-    // Phase 4: Refill (30ms delay for 25ms tween)
+    // Phase 4: Refill (200ms delay for 200ms tween)
     state = state.copyWith(
       animState: BoardAnimState.refill(step.refillSources, stepIndex, totalSteps),
     );
-    await Future.delayed(const Duration(milliseconds: 30));
+    await Future.delayed(const Duration(milliseconds: 200));
 
     await _animateNextStep();
   }
@@ -557,12 +557,12 @@ class GameStateNotifier extends StateNotifier<GameState> {
     state = state.copyWith(
       animState: BoardAnimState.flash(blastCells, 0, 1),
     );
-    await Future.delayed(const Duration(milliseconds: 40));
+    await Future.delayed(const Duration(milliseconds: 120));
 
     state = state.copyWith(
       animState: BoardAnimState.pop(blastCells, 0, 1),
     );
-    await Future.delayed(const Duration(milliseconds: 30));
+    await Future.delayed(const Duration(milliseconds: 150));
 
     var current = BoardHelper.clone(state.board);
     for (final cell in blastCells) {

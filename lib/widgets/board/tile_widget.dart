@@ -116,28 +116,51 @@ class TileWidget extends StatelessWidget {
                   offset: const Offset(0, 6),
                 ),
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.25),
+                  color: baseColor.withValues(alpha: 0.6),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 2),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.3),
                   offset: const Offset(2, 8),
                   blurRadius: 6,
                 ),
               ],
-              border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.5),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
             ),
             // Inner glossy reflection
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.white.withValues(alpha: 0.4),
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.1),
-                  ],
-                  stops: const [0.0, 0.4, 1.0],
+            child: Stack(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.5),
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.2),
+                      ],
+                      stops: const [0.0, 0.4, 1.0],
+                    ),
+                  ),
                 ),
-              ),
+                // Extra top-left shine dot
+                Positioned(
+                  top: 2,
+                  left: 2,
+                  child: Container(
+                    width: size * 0.2,
+                    height: size * 0.15,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           // Emoji Icon

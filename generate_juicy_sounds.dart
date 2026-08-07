@@ -10,101 +10,95 @@ void main() async {
     audioDir.createSync(recursive: true);
   }
 
-  // 1. Juicy Match Sound (Cute Fast Chime)
-  final matchAudio = applyEnvelope(
-    generateArpeggio([783.99, 1046.50, 1318.51, 1567.98], 0.04, 'sine'),
-    0.01, 0.05, 0.5, 0.05,
-  );
-  saveWav('match.wav', matchAudio);
-
-  // 2. Swap Sound (Quick Whoosh/Slide)
-  final swapDur = 0.15;
-  final numSamples = (sampleRate * swapDur).toInt();
-  final swapRaw = Float64List(numSamples);
+  // 1. Juicy Match Sound (Pop)
+  final popDur = 0.15;
+  final numSamples = (sampleRate * popDur).toInt();
+  final popRaw = Float64List(numSamples);
   for (int i = 0; i < numSamples; i++) {
     double t = i / sampleRate;
-    double freq = 300 + (300 * (i / numSamples)); // sweep 300 to 600
-    swapRaw[i] = sin(2 * pi * freq * t);
+    double freq = 800 * exp(-25 * t);
+    double vol = exp(-15 * t);
+    popRaw[i] = sin(2 * pi * freq * t) * vol;
   }
-  final swapAudio = applyEnvelope(swapRaw, 0.02, 0.0, 1.0, 0.1);
-  saveWav('swap.wav', swapAudio);
+  saveWav('match.wav', popRaw);
 
-  // 3. Invalid Sound (Buzzer/Dissonant)
-  final invalidDur = 0.3;
+  // 2. Swap Sound (Quick Whoosh/Slide)
+  final swapDur = 0.1;
+  final numSwapSamples = (sampleRate * swapDur).toInt();
+  final swapRaw = Float64List(numSwapSamples);
+  for (int i = 0; i < numSwapSamples; i++) {
+    double t = i / sampleRate;
+    double freq = 300 + 400 * (i / numSwapSamples);
+    double vol = sin(pi * (t / swapDur));
+    swapRaw[i] = sin(2 * pi * freq * t) * vol;
+  }
+  saveWav('swap.wav', swapRaw);
+
+  // 3. Invalid Sound (Dull thud)
+  final invalidDur = 0.2;
   final invalidRaw = Float64List((sampleRate * invalidDur).toInt());
+  final rand = Random();
   for (int i = 0; i < invalidRaw.length; i++) {
     double t = i / sampleRate;
-    double val1 = sin(2 * pi * 150 * t) >= 0 ? 1.0 : -1.0;
-    double val2 = sin(2 * pi * 160 * t) >= 0 ? 1.0 : -1.0;
-    invalidRaw[i] = (val1 + val2) / 2;
+    double freq = 100 * exp(-10 * t);
+    double vol = exp(-20 * t);
+    invalidRaw[i] = (sin(2 * pi * freq * t) + rand.nextDouble() * 0.2 - 0.1) * vol;
   }
-  final invalidAudio = applyEnvelope(invalidRaw, 0.01, 0.1, 0.5, 0.1);
-  saveWav('invalid.wav', invalidAudio);
+  saveWav('invalid.wav', invalidRaw);
 
   // 4. Special Sound (Magical Sparkle)
-  final specialNotes = [523.25, 659.25, 783.99, 987.77, 1046.50, 1318.51, 1567.98, 2093.00];
-  final specialAudio = applyEnvelope(
-    generateArpeggio(specialNotes, 0.08, 'triangle'),
-    0.1, 0.2, 0.6, 0.3,
-  );
-  saveWav('special.wav', specialAudio);
+  final specialDur = 0.5;
+  final specialRaw = Float64List((sampleRate * specialDur).toInt());
+  for (int i = 0; i < specialRaw.length; i++) {
+    double t = i / sampleRate;
+    double vol = exp(-5 * t);
+    double freq = 1500 + 500 * sin(2 * pi * 20 * t);
+    specialRaw[i] = sin(2 * pi * freq * t) * vol;
+  }
+  saveWav('special.wav', specialRaw);
 
-  // 5. Button Click (Short Pop)
+  // 5. Button Click (Short Click)
   final buttonDur = 0.05;
   final buttonRaw = Float64List((sampleRate * buttonDur).toInt());
   for (int i = 0; i < buttonRaw.length; i++) {
     double t = i / sampleRate;
-    buttonRaw[i] = sin(2 * pi * 800 * t);
+    double freq = 600 * exp(-30 * t);
+    double vol = exp(-30 * t);
+    buttonRaw[i] = sin(2 * pi * freq * t) * vol;
   }
-  final buttonAudio = applyEnvelope(buttonRaw, 0.005, 0.0, 1.0, 0.04);
-  saveWav('button.wav', buttonAudio);
+  saveWav('button.wav', buttonRaw);
 
-  // 6. Background Music (Arpeggiated Chords)
-  List<double> cMaj = [261.63, 329.63, 392.00];
-  List<double> gMaj = [196.00, 246.94, 293.66];
-  List<double> aMin = [220.00, 261.63, 329.63];
-  List<double> fMaj = [174.61, 220.00, 261.63];
-  
-  List<List<double>> chords = [cMaj, gMaj, aMin, fMaj];
-  List<double> bgRawList = [];
-  
-  for (int loop = 0; loop < 2; loop++) {
-    for (var c in chords) {
-      final chordDur = 1.0;
-      final chordRaw = Float64List((sampleRate * chordDur).toInt());
-      for (int i = 0; i < chordRaw.length; i++) {
-        double t = i / sampleRate;
-        double val = 0;
-        for (var f in c) {
-          // triangle wave
-          double phase = f * t;
-          val += 2 * (2 * (phase - phase.floor()) - 1).abs() - 1;
-        }
-        chordRaw[i] = val / c.length;
-      }
-      final chordEnv = applyEnvelope(chordRaw, 0.1, 0.2, 0.8, 0.1);
-      bgRawList.addAll(chordEnv);
-    }
+  // 6. Background Music (Soft drone)
+  final bgDur = 5.0;
+  final bgRaw = Float64List((sampleRate * bgDur).toInt());
+  for (int i = 0; i < bgRaw.length; i++) {
+    double t = i / sampleRate;
+    double freq = 200 + 5 * sin(2 * pi * 0.2 * t);
+    double vol = 0.1 * (1 - cos(2 * pi * t / bgDur)) / 2;
+    bgRaw[i] = sin(2 * pi * freq * t) * vol;
   }
-  saveWav('bg_music.wav', Float64List.fromList(bgRawList));
+  saveWav('bg_music.wav', bgRaw);
 
-  // 7. Victory Sound (Happy Fanfare)
-  final victoryNotes = [523.25, 659.25, 783.99];
-  final victoryAudio = <double>[];
-  for (var f in victoryNotes) {
-    victoryAudio.addAll(applyEnvelope(generateTone(f, 0.15, 'square'), 0.02, 0.05, 0.6, 0.08));
+  // 7. Victory Sound (Happy chord)
+  final victoryDur = 1.0;
+  final victoryRaw = Float64List((sampleRate * victoryDur).toInt());
+  for (int i = 0; i < victoryRaw.length; i++) {
+    double t = i / sampleRate;
+    double vol = exp(-2 * t);
+    victoryRaw[i] = (sin(2*pi*523.25*t) + sin(2*pi*659.25*t) + sin(2*pi*783.99*t)) * vol / 3;
   }
-  victoryAudio.addAll(applyEnvelope(generateTone(1046.50, 0.6, 'square'), 0.1, 0.2, 0.8, 0.3));
-  saveWav('victory.wav', Float64List.fromList(victoryAudio));
+  saveWav('victory.wav', victoryRaw);
 
-  // 8. Lose Sound (Sad Descending)
-  final loseNotes = [392.00, 370.00, 349.23, 329.63];
-  final loseAudio = <double>[];
-  for (int i = 0; i < loseNotes.length - 1; i++) {
-    loseAudio.addAll(applyEnvelope(generateTone(loseNotes[i], 0.3, 'sawtooth'), 0.05, 0.1, 0.7, 0.1));
+  // 8. Lose Sound (Sad down sweep)
+  final loseDur = 1.0;
+  final loseRaw = Float64List((sampleRate * loseDur).toInt());
+  for (int i = 0; i < loseRaw.length; i++) {
+    double t = i / sampleRate;
+    double vol = exp(-3 * t);
+    double freq = 300 - 150 * t;
+    loseRaw[i] = sin(2*pi*freq*t) * vol;
   }
-  loseAudio.addAll(applyEnvelope(generateTone(loseNotes.last, 0.8, 'sawtooth'), 0.1, 0.2, 0.6, 0.4));
-  saveWav('lose.wav', Float64List.fromList(loseAudio));
+  saveWav('lose.wav', loseRaw);
 
   print("Professional juicy sound effects generated successfully with Dart!");
 }

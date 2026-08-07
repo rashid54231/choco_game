@@ -10,23 +10,44 @@ class AudioService {
   static final AudioService instance = AudioService._();
 
   final AudioPlayer _musicPlayer = AudioPlayer();
-  final AudioPlayer _sfxPlayer = AudioPlayer();
+  
+  // Dedicated pre-loaded pools for ZERO latency
+  final List<AudioPlayer> _matchPlayers = List.generate(8, (_) => AudioPlayer()..setReleaseMode(ReleaseMode.stop));
+  int _matchIdx = 0;
+
+  final List<AudioPlayer> _swapPlayers = List.generate(5, (_) => AudioPlayer()..setReleaseMode(ReleaseMode.stop));
+  int _swapIdx = 0;
+
+  final AudioPlayer _btnPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
+  final AudioPlayer _invalidPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
+  final AudioPlayer _specialPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
 
   bool musicEnabled = true;
   bool sfxEnabled = true;
-
-  Future<void> init() async {
-    await _musicPlayer.setReleaseMode(ReleaseMode.loop);
-    await _sfxPlayer.setReleaseMode(ReleaseMode.release);
-    // Auto-start background music
-    playBackgroundMusic();
-  }
 
   String _formatAssetPath(String path) {
     if (path.startsWith('assets/')) {
       return path.substring('assets/'.length);
     }
     return path;
+  }
+
+  Future<void> init() async {
+    await _musicPlayer.setReleaseMode(ReleaseMode.loop);
+    
+    // PRE-LOAD all critical sources to eliminate decoding delay (Android MediaPlayer limitation)
+    for (var p in _matchPlayers) {
+      await p.setSource(AssetSource(_formatAssetPath(AssetPaths.sfxMatch)));
+    }
+    for (var p in _swapPlayers) {
+      await p.setSource(AssetSource(_formatAssetPath(AssetPaths.sfxSwap)));
+    }
+    
+    await _btnPlayer.setSource(AssetSource(_formatAssetPath(AssetPaths.sfxButton)));
+    await _invalidPlayer.setSource(AssetSource(_formatAssetPath(AssetPaths.sfxInvalid)));
+    await _specialPlayer.setSource(AssetSource(_formatAssetPath(AssetPaths.sfxSpecial)));
+
+    playBackgroundMusic();
   }
 
   Future<void> playBackgroundMusic() async {
@@ -44,22 +65,53 @@ class AudioService {
     } catch (_) {}
   }
 
-  Future<void> _playSfx(String path) async {
+  // Fire and forget using pre-loaded sources for absolute 0ms delay
+  void _playPool(List<AudioPlayer> pool, int index, void Function(int) updateIndex) {
     if (!sfxEnabled) return;
     try {
-      await _sfxPlayer.play(AssetSource(_formatAssetPath(path)));
+      final player = pool[index];
+      updateIndex((index + 1) % pool.length);
+      if (player.state == PlayerState.playing || player.state == PlayerState.paused) {
+        player.seek(Duration.zero);
+        player.resume();
+      } else {
+        player.resume();
+      }
     } catch (e) {
-      if (kDebugMode) debugPrint('sfx unavailable: $e');
+      if (kDebugMode) debugPrint('sfx pool unavailable: $e');
     }
   }
 
-  Future<void> playMatch() => _playSfx(AssetPaths.sfxMatch);
-  Future<void> playSwap() => _playSfx(AssetPaths.sfxSwap);
-  Future<void> playInvalid() => _playSfx(AssetPaths.sfxInvalid);
-  Future<void> playSpecial() => _playSfx(AssetPaths.sfxSpecial);
-  Future<void> playButton() => _playSfx(AssetPaths.sfxButton);
-  Future<void> playVictory() => _playSfx(AssetPaths.sfxVictory);
-  Future<void> playLose() => _playSfx(AssetPaths.sfxLose);
+  void _playSingle(AudioPlayer player) {
+    if (!sfxEnabled) return;
+    try {
+      if (player.state == PlayerState.playing || player.state == PlayerState.paused) {
+        player.seek(Duration.zero);
+        player.resume();
+      } else {
+        player.resume();
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('sfx single unavailable: $e');
+    }
+  }
+
+  void playMatch() => _playPool(_matchPlayers, _matchIdx, (i) => _matchIdx = i);
+  void playSwap() => _playPool(_swapPlayers, _swapIdx, (i) => _swapIdx = i);
+  void playButton() => _playSingle(_btnPlayer);
+  void playInvalid() => _playSingle(_invalidPlayer);
+  void playSpecial() => _playSingle(_specialPlayer);
+  
+  // For victory/lose, we can just use dynamic play since they aren't rapid/spammy
+  void playVictory() {
+    if (!sfxEnabled) return;
+    AudioPlayer().play(AssetSource(_formatAssetPath(AssetPaths.sfxVictory)));
+  }
+  
+  void playLose() {
+    if (!sfxEnabled) return;
+    AudioPlayer().play(AssetSource(_formatAssetPath(AssetPaths.sfxLose)));
+  }
 
   void setMusicEnabled(bool enabled) {
     musicEnabled = enabled;
