@@ -269,32 +269,41 @@ class GameStateNotifier extends StateNotifier<GameState> {
     final totalSteps = (_pendingResolution?.steps.length ?? 1);
     final stepIndex = step.cascadeIndex;
 
-    // Phase 1: Flash (120ms delay for 120ms tween)
+    // Phase 1: Flash & Sound (60ms delay for 60ms tween)
+    AudioService.instance.playMatch(combo: stepIndex + 1);
+    
+    if (stepIndex == 1) {
+      HapticFeedback.lightImpact();
+    } else if (stepIndex == 2) {
+      HapticFeedback.mediumImpact();
+    } else if (stepIndex >= 3) {
+      HapticFeedback.heavyImpact();
+    }
+
     state = state.copyWith(
       animState: BoardAnimState.flash(step.clearedCells, stepIndex, totalSteps),
     );
-    await Future.delayed(const Duration(milliseconds: 120));
+    await Future.delayed(const Duration(milliseconds: 60));
 
-    // Phase 2: Pop (150ms delay for 150ms tween)
-    AudioService.instance.playMatch();
+    // Phase 2: Pop (80ms delay for 80ms tween)
+
     state = state.copyWith(
       animState: BoardAnimState.pop(step.clearedCells, stepIndex, totalSteps),
     );
-    await Future.delayed(const Duration(milliseconds: 150));
+    await Future.delayed(const Duration(milliseconds: 80));
 
-    // Phase 3: Gravity + board swap (250ms delay for 250ms tween)
-    AudioService.instance.playSwap();
+    // Phase 3: Gravity + board swap (150ms delay for 150ms tween)
     state = state.copyWith(
       board: step.boardAfter,
       animState: BoardAnimState.fall(step.fallDistances, stepIndex, totalSteps),
     );
-    await Future.delayed(const Duration(milliseconds: 250));
+    await Future.delayed(const Duration(milliseconds: 150));
 
-    // Phase 4: Refill (200ms delay for 200ms tween)
+    // Phase 4: Refill (120ms delay for 120ms tween)
     state = state.copyWith(
       animState: BoardAnimState.refill(step.refillSources, stepIndex, totalSteps),
     );
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 120));
 
     await _animateNextStep();
   }
@@ -550,19 +559,19 @@ class GameStateNotifier extends StateNotifier<GameState> {
     );
 
     // Wait for the visual blast
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 300));
     if (!mounted) return false;
 
     // Now actually clear the cells
     state = state.copyWith(
       animState: BoardAnimState.flash(blastCells, 0, 1),
     );
-    await Future.delayed(const Duration(milliseconds: 120));
+    await Future.delayed(const Duration(milliseconds: 60));
 
     state = state.copyWith(
       animState: BoardAnimState.pop(blastCells, 0, 1),
     );
-    await Future.delayed(const Duration(milliseconds: 150));
+    await Future.delayed(const Duration(milliseconds: 80));
 
     var current = BoardHelper.clone(state.board);
     for (final cell in blastCells) {

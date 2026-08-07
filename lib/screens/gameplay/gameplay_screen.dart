@@ -29,6 +29,9 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
   Timer? _timer;
   bool _resolved = false;
   bool _navigating = false;
+  
+  bool _showEndBanner = false;
+  bool _endSuccess = false;
 
   late final AnimationController _hudAnim;
 
@@ -75,7 +78,23 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
     if (_navigating) return;
     _navigating = true;
     final game = ref.read(boardProvider(widget.level));
-    await Future.delayed(const Duration(milliseconds: 150));
+    
+    // Play sound immediately
+    if (success) {
+      AudioService.instance.playVictory();
+    } else {
+      AudioService.instance.playLose();
+    }
+
+    if (mounted) {
+      setState(() {
+        _showEndBanner = true;
+        _endSuccess = success;
+      });
+    }
+
+    // Wait 2 seconds for celebration on board
+    await Future.delayed(const Duration(milliseconds: 2000));
     if (!mounted) return;
 
     if (success) {
@@ -165,6 +184,12 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                               ),
                             ),
                           ),
+                          if (_showEndBanner)
+                            Positioned.fill(
+                              child: Center(
+                                child: _buildEndBanner(),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -180,6 +205,48 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildEndBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.black87,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _endSuccess ? Colors.amber : Colors.redAccent, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: (_endSuccess ? Colors.amber : Colors.redAccent).withValues(alpha: 0.5),
+            blurRadius: 20,
+            spreadRadius: 2,
+          ),
+        ]
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            _endSuccess ? '🏆' : '😔',
+            style: const TextStyle(fontSize: 48),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _endSuccess ? 'LEVEL CLEAR!' : 'OUT OF MOVES!',
+            style: TextStyle(
+              color: _endSuccess ? Colors.amber : Colors.redAccent,
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              fontFamily: 'Baloo2',
+            ),
+          ),
+        ],
+      ),
+    ).animate().scale(
+      duration: 600.ms,
+      curve: Curves.elasticOut,
+      begin: const Offset(0.5, 0.5),
+      end: const Offset(1, 1),
     );
   }
 

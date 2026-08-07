@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import 'package:choco_blast_adventure/core/constants/tile_constants.dart';
 import 'package:choco_blast_adventure/game_logic/match_detector.dart';
@@ -45,6 +46,8 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     final bombCenter = ref.watch(boardProvider(widget.level).select((s) => s.animState.bombBlastCenter));
     final bombCells = ref.watch(boardProvider(widget.level).select((s) => s.animState.bombBlastCells));
     final bombTile = bombCenter != null ? ref.watch(boardProvider(widget.level).select((s) => s.board[bombCenter.r][bombCenter.c])) : null;
+
+    final activeCascadeStep = ref.watch(boardProvider(widget.level).select((s) => s.animState.activeCascadeStep));
 
     final rows = widget.level.gridSize;
     final cols = widget.level.gridSize;
@@ -116,8 +119,57 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                     .toSet(),
               ),
             ),
+          
+          // Advanced Combo Popup Overlay
+          if (activeCascadeStep >= 2)
+            Positioned.fill(
+              child: Center(
+                child: IgnorePointer(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: _buildComboText(activeCascadeStep, key: ValueKey('combo_$activeCascadeStep')),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
+    );
+  }
+
+  Widget _buildComboText(int step, {Key? key}) {
+    String text;
+    Color color;
+    if (step == 2) { text = 'Sweet!'; color = Colors.orangeAccent; }
+    else if (step == 3) { text = 'Delicious!'; color = Colors.pinkAccent; }
+    else if (step == 4) { text = 'Divine!'; color = Colors.purpleAccent; }
+    else { text = 'Unbelievable!'; color = Colors.yellowAccent; }
+
+    return Animate(
+      child: Text(
+        text,
+        key: key,
+        style: TextStyle(
+          fontFamily: 'Baloo2',
+          fontSize: 48 + (step * 4.0).clamp(0, 24),
+          fontWeight: FontWeight.w900,
+          color: color,
+          height: 1,
+          shadows: const [
+            Shadow(color: Colors.black54, offset: Offset(2, 4), blurRadius: 4),
+            Shadow(color: Colors.white70, offset: Offset(-1, -1), blurRadius: 2),
+          ],
+        ),
+      ),
+    ).scale(
+      begin: const Offset(0.5, 0.5), 
+      end: const Offset(1, 1), 
+      duration: const Duration(milliseconds: 400), 
+      curve: Curves.elasticOut,
+    ).then(
+      delay: const Duration(milliseconds: 400),
+    ).fadeOut(
+      duration: const Duration(milliseconds: 200),
     );
   }
 
@@ -316,7 +368,7 @@ class CellWidget extends ConsumerWidget {
         onPanEnd: onPanEnd,
         child: TweenAnimationBuilder<double>(
           tween: Tween(begin: 1.0, end: 1.15),
-          duration: const Duration(milliseconds: 120),
+          duration: const Duration(milliseconds: 60),
           curve: Curves.easeOut,
           builder: (_, s, _) => Transform.scale(
             scale: s,
@@ -336,7 +388,7 @@ class CellWidget extends ConsumerWidget {
         children: [
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 1.0, end: 0.0),
-            duration: const Duration(milliseconds: 150),
+            duration: const Duration(milliseconds: 80),
             curve: Curves.easeInQuad,
             builder: (_, s, _) => Transform.scale(
               scale: s,
@@ -368,7 +420,7 @@ class CellWidget extends ConsumerWidget {
         onPanEnd: onPanEnd,
         child: TweenAnimationBuilder<Offset>(
           tween: Tween(begin: Offset(0, -px), end: Offset.zero),
-          duration: const Duration(milliseconds: 250),
+          duration: const Duration(milliseconds: 150),
           curve: Curves.easeOut,
           builder: (_, o, _) => Transform.translate(
             offset: o,
@@ -387,7 +439,7 @@ class CellWidget extends ConsumerWidget {
         onPanEnd: onPanEnd,
         child: TweenAnimationBuilder<Offset>(
           tween: Tween(begin: Offset(0, -from - cellSize), end: Offset.zero),
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 120),
           curve: Curves.easeOutBack,
           builder: (_, o, _) => Transform.translate(
             offset: o,

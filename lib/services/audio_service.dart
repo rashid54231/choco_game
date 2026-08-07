@@ -21,6 +21,8 @@ class AudioService {
   final AudioPlayer _btnPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
   final AudioPlayer _invalidPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
   final AudioPlayer _specialPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
+  final AudioPlayer _victoryPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
+  final AudioPlayer _losePlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
 
   bool musicEnabled = true;
   bool sfxEnabled = true;
@@ -46,6 +48,8 @@ class AudioService {
     await _btnPlayer.setSource(AssetSource(_formatAssetPath(AssetPaths.sfxButton)));
     await _invalidPlayer.setSource(AssetSource(_formatAssetPath(AssetPaths.sfxInvalid)));
     await _specialPlayer.setSource(AssetSource(_formatAssetPath(AssetPaths.sfxSpecial)));
+    await _victoryPlayer.setSource(AssetSource(_formatAssetPath(AssetPaths.sfxVictory)));
+    await _losePlayer.setSource(AssetSource(_formatAssetPath(AssetPaths.sfxLose)));
 
     playBackgroundMusic();
   }
@@ -66,17 +70,34 @@ class AudioService {
   }
 
   // Fire and forget using pre-loaded sources for absolute 0ms delay
+  void _playMatchPool(List<AudioPlayer> pool, int index, void Function(int) updateIndex, {int combo = 1}) {
+    if (!sfxEnabled) return;
+    try {
+      final player = pool[index];
+      updateIndex((index + 1) % pool.length);
+      
+      // Dynamic pitch escalation based on combo (from 1.0 up to 2.0x)
+      double pitch = 1.0 + (combo - 1) * 0.08;
+      if (pitch > 2.0) pitch = 2.0;
+
+      // Fire synchronously for ZERO latency
+      player.setPlaybackRate(pitch);
+      player.seek(Duration.zero);
+      player.resume();
+    } catch (e) {
+      if (kDebugMode) debugPrint('sfx match pool unavailable: $e');
+    }
+  }
+
   void _playPool(List<AudioPlayer> pool, int index, void Function(int) updateIndex) {
     if (!sfxEnabled) return;
     try {
       final player = pool[index];
       updateIndex((index + 1) % pool.length);
-      if (player.state == PlayerState.playing || player.state == PlayerState.paused) {
-        player.seek(Duration.zero);
-        player.resume();
-      } else {
-        player.resume();
-      }
+      
+      player.setPlaybackRate(1.0);
+      player.seek(Duration.zero);
+      player.resume();
     } catch (e) {
       if (kDebugMode) debugPrint('sfx pool unavailable: $e');
     }
@@ -85,33 +106,22 @@ class AudioService {
   void _playSingle(AudioPlayer player) {
     if (!sfxEnabled) return;
     try {
-      if (player.state == PlayerState.playing || player.state == PlayerState.paused) {
-        player.seek(Duration.zero);
-        player.resume();
-      } else {
-        player.resume();
-      }
+      player.seek(Duration.zero);
+      player.resume();
     } catch (e) {
       if (kDebugMode) debugPrint('sfx single unavailable: $e');
     }
   }
 
-  void playMatch() => _playPool(_matchPlayers, _matchIdx, (i) => _matchIdx = i);
+  void playMatch({int combo = 1}) => _playMatchPool(_matchPlayers, _matchIdx, (i) => _matchIdx = i, combo: combo);
   void playSwap() => _playPool(_swapPlayers, _swapIdx, (i) => _swapIdx = i);
   void playButton() => _playSingle(_btnPlayer);
   void playInvalid() => _playSingle(_invalidPlayer);
   void playSpecial() => _playSingle(_specialPlayer);
   
-  // For victory/lose, we can just use dynamic play since they aren't rapid/spammy
-  void playVictory() {
-    if (!sfxEnabled) return;
-    AudioPlayer().play(AssetSource(_formatAssetPath(AssetPaths.sfxVictory)));
-  }
+  void playVictory() => _playSingle(_victoryPlayer);
   
-  void playLose() {
-    if (!sfxEnabled) return;
-    AudioPlayer().play(AssetSource(_formatAssetPath(AssetPaths.sfxLose)));
-  }
+  void playLose() => _playSingle(_losePlayer);
 
   void setMusicEnabled(bool enabled) {
     musicEnabled = enabled;
