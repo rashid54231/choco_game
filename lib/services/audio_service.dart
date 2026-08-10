@@ -11,16 +11,16 @@ class AudioService {
 
   final AudioPlayer _musicPlayer = AudioPlayer();
   
-  // Dedicated pre-loaded pools for ZERO latency
-  final List<AudioPlayer> _matchPlayers = List.generate(8, (_) => AudioPlayer()..setReleaseMode(ReleaseMode.stop));
+  // Dedicated pre-loaded pools for ZERO latency using SoundPool (lowLatency)
+  final List<AudioPlayer> _matchPlayers = List.generate(8, (_) => AudioPlayer()..setReleaseMode(ReleaseMode.stop)..setPlayerMode(PlayerMode.lowLatency));
   int _matchIdx = 0;
 
-  final List<AudioPlayer> _swapPlayers = List.generate(5, (_) => AudioPlayer()..setReleaseMode(ReleaseMode.stop));
+  final List<AudioPlayer> _swapPlayers = List.generate(5, (_) => AudioPlayer()..setReleaseMode(ReleaseMode.stop)..setPlayerMode(PlayerMode.lowLatency));
   int _swapIdx = 0;
 
-  final AudioPlayer _btnPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
-  final AudioPlayer _invalidPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
-  final AudioPlayer _specialPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
+  final AudioPlayer _btnPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop)..setPlayerMode(PlayerMode.lowLatency);
+  final AudioPlayer _invalidPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop)..setPlayerMode(PlayerMode.lowLatency);
+  final AudioPlayer _specialPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop)..setPlayerMode(PlayerMode.lowLatency);
   final AudioPlayer _victoryPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
   final AudioPlayer _losePlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
 
