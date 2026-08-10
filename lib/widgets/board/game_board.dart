@@ -368,7 +368,7 @@ class CellWidget extends ConsumerWidget {
         onPanEnd: onPanEnd,
         child: TweenAnimationBuilder<double>(
           tween: Tween(begin: 1.0, end: 1.15),
-          duration: const Duration(milliseconds: 60),
+          duration: const Duration(milliseconds: 30),
           curve: Curves.easeOut,
           builder: (_, s, _) => Transform.scale(
             scale: s,
@@ -388,7 +388,7 @@ class CellWidget extends ConsumerWidget {
         children: [
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 1.0, end: 0.0),
-            duration: const Duration(milliseconds: 80),
+            duration: const Duration(milliseconds: 40),
             curve: Curves.easeInQuad,
             builder: (_, s, _) => Transform.scale(
               scale: s,
@@ -420,7 +420,7 @@ class CellWidget extends ConsumerWidget {
         onPanEnd: onPanEnd,
         child: TweenAnimationBuilder<Offset>(
           tween: Tween(begin: Offset(0, -px), end: Offset.zero),
-          duration: const Duration(milliseconds: 150),
+          duration: const Duration(milliseconds: 75),
           curve: Curves.easeOut,
           builder: (_, o, _) => Transform.translate(
             offset: o,
@@ -439,7 +439,7 @@ class CellWidget extends ConsumerWidget {
         onPanEnd: onPanEnd,
         child: TweenAnimationBuilder<Offset>(
           tween: Tween(begin: Offset(0, -from - cellSize), end: Offset.zero),
-          duration: const Duration(milliseconds: 120),
+          duration: const Duration(milliseconds: 60),
           curve: Curves.easeOutBack,
           builder: (_, o, _) => Transform.translate(
             offset: o,
@@ -460,7 +460,7 @@ class CellWidget extends ConsumerWidget {
       onPanUpdate: onPanUpdate,
       onPanEnd: onPanEnd,
       child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 80),
+        duration: const Duration(milliseconds: 40),
         switchInCurve: Curves.easeOutBack,
         switchOutCurve: Curves.easeIn,
         transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: FadeTransition(opacity: anim, child: child)),
