@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:confetti/confetti.dart';
 
 import 'package:choco_blast_adventure/models/level_model.dart';
 import 'package:choco_blast_adventure/providers/board_provider.dart';
@@ -15,6 +16,7 @@ import 'package:choco_blast_adventure/screens/level_map/level_map_screen.dart';
 import 'package:choco_blast_adventure/services/audio_service.dart';
 import 'package:choco_blast_adventure/widgets/board/combo_counter.dart';
 import 'package:choco_blast_adventure/widgets/board/game_board.dart';
+import 'package:choco_blast_adventure/core/theme/level_theme_engine.dart';
 
 class GameplayScreen extends ConsumerStatefulWidget {
   final LevelModel level;
@@ -34,12 +36,14 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
   bool _endSuccess = false;
 
   late final AnimationController _hudAnim;
+  late final ConfettiController _confettiController;
 
   @override
   void initState() {
     super.initState();
     _hudAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
     _hudAnim.forward();
+    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
     if (widget.level.hasTimer) _startTimer();
   }
 
@@ -55,6 +59,7 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
   void dispose() {
     _timer?.cancel();
     _hudAnim.dispose();
+    _confettiController.dispose();
     super.dispose();
   }
 
@@ -82,6 +87,7 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
     // Play sound immediately
     if (success) {
       AudioService.instance.playVictory();
+      _confettiController.play();
     } else {
       AudioService.instance.playLose();
     }
@@ -134,6 +140,7 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
     final game = ref.watch(boardProvider(widget.level));
     final screenW = MediaQuery.of(context).size.width;
     final boardSize = screenW - 16;
+    final theme = LevelThemeEngine.getThemeForLevel(widget.level.levelNumber);
 
     // Check end conditions whenever game state changes
     if ((game.isComplete || game.isFailed) && !_resolved && !_navigating && !game.isResolving) {
@@ -144,17 +151,30 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF2E0854), Color(0xFF150538)],
+            colors: theme.backgroundGradient,
           ),
         ),
         child: Stack(
           children: [
             // Ambient animated glowing backdrop
-            ..._buildBackgroundDecorations(),
+            ..._buildBackgroundDecorations(theme),
+
+            // Confetti Explosion Layer
+            Align(
+              alignment: Alignment.center,
+              child: ConfettiWidget(
+                confettiController: _confettiController,
+                blastDirectionality: BlastDirectionality.explosive,
+                shouldLoop: false,
+                colors: theme.particleColors,
+                numberOfParticles: 50,
+                gravity: 0.1,
+              ),
+            ),
 
             // Main gameplay UI layout
             SafeArea(
@@ -171,8 +191,9 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                           Container(
                             padding: const EdgeInsets.all(5),
                             decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.1),
+                              color: theme.boardBackgroundColor,
                               borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: theme.boardBorderColor.withValues(alpha: 0.3), width: 2),
                             ),
                             child: GameBoard(level: widget.level, boardSize: boardSize),
                           ),
@@ -187,7 +208,7 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
                           if (_showEndBanner)
                             Positioned.fill(
                               child: Center(
-                                child: _buildEndBanner(),
+                                child: _buildEndBanner(theme),
                               ),
                             ),
                         ],
@@ -208,16 +229,16 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
     );
   }
 
-  Widget _buildEndBanner() {
+  Widget _buildEndBanner(LevelTheme theme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.black87,
+        gradient: LinearGradient(colors: _endSuccess ? theme.hudGradient : [Colors.red.shade900, Colors.red.shade800]),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _endSuccess ? Colors.amber : Colors.redAccent, width: 2),
+        border: Border.all(color: _endSuccess ? theme.hudBorderColor : Colors.redAccent, width: 2),
         boxShadow: [
           BoxShadow(
-            color: (_endSuccess ? Colors.amber : Colors.redAccent).withValues(alpha: 0.5),
+            color: (_endSuccess ? theme.hudBorderColor : Colors.redAccent).withValues(alpha: 0.5),
             blurRadius: 20,
             spreadRadius: 2,
           ),
@@ -229,17 +250,17 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
           Text(
             _endSuccess ? '🏆' : '😔',
             style: const TextStyle(fontSize: 48),
-          ),
+          ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(begin: const Offset(1,1), end: const Offset(1.2,1.2), duration: 600.ms),
           const SizedBox(height: 8),
           Text(
             _endSuccess ? 'LEVEL CLEAR!' : 'OUT OF MOVES!',
-            style: TextStyle(
-              color: _endSuccess ? Colors.amber : Colors.redAccent,
+            style: const TextStyle(
+              color: Colors.white,
               fontSize: 28,
               fontWeight: FontWeight.w900,
               fontFamily: 'Baloo2',
             ),
-          ),
+          ).animate(onPlay: (c) => c.loop()).shimmer(duration: 1500.ms, color: Colors.white.withValues(alpha: 0.5)),
         ],
       ),
     ).animate().scale(
@@ -252,6 +273,7 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
 
   Widget _hud(GameState game) {
     final level = widget.level;
+    final theme = LevelThemeEngine.getThemeForLevel(level.levelNumber);
 
     return FadeTransition(
       opacity: CurvedAnimation(parent: _hudAnim, curve: Curves.easeOut),
@@ -259,15 +281,15 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
         margin: const EdgeInsets.fromLTRB(10, 4, 10, 0),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF2D1B69), Color(0xFF1E1145)],
+            colors: theme.hudGradient,
           ),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFF6C5CE7).withValues(alpha: 0.3), width: 1),
+          border: Border.all(color: theme.hudBorderColor.withValues(alpha: 0.3), width: 1),
           boxShadow: [
-            BoxShadow(color: const Color(0xFF1E1145).withValues(alpha: 0.6), blurRadius: 12, offset: const Offset(0, 4)),
+            BoxShadow(color: theme.hudGradient.last.withValues(alpha: 0.6), blurRadius: 12, offset: const Offset(0, 4)),
           ],
         ),
         child: Row(
@@ -861,8 +883,8 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
     );
   }
 
-  List<Widget> _buildBackgroundDecorations() {
-    final colors = [const Color(0xFFFF6B9D), const Color(0xFFAB47BC), const Color(0xFF42A5F5), const Color(0xFFFFD54F)];
+  List<Widget> _buildBackgroundDecorations(LevelTheme theme) {
+    final colors = theme.particleColors;
     final screenW = MediaQuery.of(context).size.width;
     final screenH = MediaQuery.of(context).size.height;
     return List.generate(8, (i) {
@@ -882,8 +904,8 @@ class _GameplayScreenState extends ConsumerState<GameplayScreen>
             ],
           ),
         ).animate(onPlay: (c) => c.loop(reverse: true))
-         .scale(begin: const Offset(1, 1), end: const Offset(1.2, 1.2), duration: Duration(milliseconds: 3000 + i * 500))
-         .move(begin: const Offset(0, 0), end: Offset((i%2==0?20.0:-20.0), (i%3==0?20.0:-20.0)), duration: Duration(milliseconds: 4000 + i * 400)),
+         .scale(begin: const Offset(1, 1), end: const Offset(1.2, 1.2), duration: Duration(milliseconds: ((3000 + i * 500) / theme.particleAnimationSpeed).round()))
+         .move(begin: const Offset(0, 0), end: Offset((i%2==0?20.0:-20.0), (i%3==0?20.0:-20.0)), duration: Duration(milliseconds: ((4000 + i * 400) / theme.particleAnimationSpeed).round())),
       );
     });
   }

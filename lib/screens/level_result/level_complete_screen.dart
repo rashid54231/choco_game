@@ -141,6 +141,8 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
                       const SizedBox(height: 12),
                       _statRow('Stars', '${widget.stars}', AppColors.candy),
                       const SizedBox(height: 12),
+                      _statRow('Reward', '+200 Coins', AppColors.candyOrange),
+                      const SizedBox(height: 12),
                       _statRow('Level', '${widget.level.levelNumber}', AppColors.candyPurple),
                     ],
                   ),

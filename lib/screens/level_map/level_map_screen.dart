@@ -8,6 +8,7 @@ import 'package:choco_blast_adventure/models/level_model.dart';
 import 'package:choco_blast_adventure/providers/profile_provider.dart';
 import 'package:choco_blast_adventure/screens/gameplay/gameplay_screen.dart';
 import 'package:choco_blast_adventure/screens/home/home_screen.dart';
+import 'package:choco_blast_adventure/screens/shop/shop_screen.dart';
 import 'package:choco_blast_adventure/services/audio_service.dart';
 import 'package:choco_blast_adventure/services/cache_service.dart';
 import 'package:choco_blast_adventure/services/lives_service.dart';
@@ -561,7 +562,14 @@ class _LevelMapScreenState extends ConsumerState<LevelMapScreen> {
     return GestureDetector(
       onTap: () {
         AudioService.instance.playButton();
-        setState(() => _selectedTab = index);
+        if (index == 4) {
+          // Navigate to Shop
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ShopScreen()),
+          );
+        } else {
+          setState(() => _selectedTab = index);
+        }
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,

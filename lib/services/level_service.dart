@@ -82,10 +82,19 @@ class LevelService {
     final gain = score - (existing?['best_score'] as int? ?? 0);
     final updatedTotal = profile.totalScore + gain.clamp(0, 1000000000);
     final nextLevel = stars > 0 ? profile.currentLevel + 1 : profile.currentLevel;
-    final updated = profile.copyWith(totalScore: updatedTotal, currentLevel: nextLevel);
+    
+    // Give 200 free coins on level complete
+    final newCoins = stars > 0 ? profile.coins + 200 : profile.coins;
+
+    final updated = profile.copyWith(
+      totalScore: updatedTotal, 
+      currentLevel: nextLevel,
+      coins: newCoins,
+    );
     await _client.from('profiles').update({
       'total_score': updatedTotal,
       'current_level': nextLevel,
+      'coins': newCoins,
     }).eq('id', user.id);
 
     return updated;

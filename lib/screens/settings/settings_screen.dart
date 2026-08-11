@@ -155,6 +155,43 @@ class SettingsScreen extends ConsumerWidget {
                       label: 'About',
                       trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white38, size: 20),
                     ),
+                    Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
+                    GestureDetector(
+                      onTap: () async {
+                        final current = ref.read(profileProvider);
+                        if (current != null) {
+                          final updated = current.copyWith(
+                            coins: current.coins + 10000,
+                            boosterExtraMoves: current.boosterExtraMoves + 99,
+                            boosterColorBomb: current.boosterColorBomb + 99,
+                            boosterHammer: current.boosterHammer + 99,
+                            boosterShuffle: current.boosterShuffle + 99,
+                          );
+                          ref.read(profileProvider.notifier).updateFrom(updated);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Cheat activated! +99 Boosters')),
+                          );
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: Colors.amber.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(Icons.bug_report_rounded, color: Colors.amber, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            const Text('Get Free Boosters (Debug)', style: TextStyle(color: Colors.amber, fontSize: 16, fontFamily: 'Baloo2', fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ).animate(delay: 200.ms).fadeIn().slideY(begin: 0.2, end: 0),

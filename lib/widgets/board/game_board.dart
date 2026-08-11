@@ -12,6 +12,7 @@ import 'package:choco_blast_adventure/models/tile_model.dart';
 import 'package:choco_blast_adventure/providers/board_provider.dart';
 import 'package:choco_blast_adventure/providers/profile_provider.dart';
 import 'package:choco_blast_adventure/providers/game_state_provider.dart';
+import 'package:choco_blast_adventure/core/theme/level_theme_engine.dart';
 import 'package:choco_blast_adventure/services/audio_service.dart';
 import 'package:choco_blast_adventure/widgets/board/bomb_blast_overlay.dart';
 import 'package:choco_blast_adventure/widgets/board/tile_widget.dart';
@@ -51,6 +52,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
     final rows = widget.level.gridSize;
     final cols = widget.level.gridSize;
+    final theme = LevelThemeEngine.getThemeForLevel(widget.level.levelNumber);
 
     return SizedBox(
       width: widget.boardSize,
@@ -64,7 +66,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF150538).withValues(alpha: 0.4),
+                  color: theme.backgroundGradient.last.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.5),
                   boxShadow: [

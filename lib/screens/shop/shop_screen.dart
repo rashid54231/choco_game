@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import 'package:choco_blast_adventure/core/theme/app_colors.dart';
 import 'package:choco_blast_adventure/core/theme/app_text_styles.dart';
+import 'package:choco_blast_adventure/models/user_profile_model.dart';
 import 'package:choco_blast_adventure/providers/profile_provider.dart';
 import 'package:choco_blast_adventure/services/audio_service.dart';
 
@@ -106,6 +107,9 @@ class ShopScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+
+              // ── Daily Reward Card ───────────────────────
+              _buildDailyRewardCard(context, ref, profile),
 
               // ── Grid ────────────────────────────────────
               Expanded(
@@ -232,6 +236,87 @@ class ShopScreen extends ConsumerWidget {
         .animate(delay: Duration(milliseconds: index * 80))
         .fadeIn(duration: 400.ms)
         .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1), curve: Curves.easeOutBack);
+  }
+
+  Widget _buildDailyRewardCard(BuildContext context, WidgetRef ref, UserProfile? profile) {
+    if (profile == null) return const SizedBox.shrink();
+
+    final now = DateTime.now();
+    final lastReward = profile.lastDailyReward;
+    final canClaim = lastReward == null ||
+        now.difference(lastReward).inDays > 0 ||
+        now.day != lastReward.day;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.candyOrange.withValues(alpha: 0.2), AppColors.candyOrange.withValues(alpha: 0.05)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.candyOrange.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.candyOrange.withValues(alpha: 0.2),
+              border: Border.all(color: AppColors.candyOrange.withValues(alpha: 0.5)),
+            ),
+            child: const Icon(Icons.card_giftcard_rounded, color: AppColors.candyOrange, size: 24),
+          ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 2000.ms, color: Colors.white54),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Daily Reward',
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Baloo2'),
+                ),
+                Text(
+                  canClaim ? 'Get 500 Free Coins!' : 'Come back tomorrow!',
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12, fontFamily: 'Baloo2'),
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: canClaim
+                ? () async {
+                    AudioService.instance.playSpecial();
+                    await ref.read(profileProvider.notifier).claimDailyReward();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('🎉 Claimed 500 Coins!'), backgroundColor: AppColors.candyOrange),
+                      );
+                    }
+                  }
+                : null,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: canClaim
+                    ? const LinearGradient(colors: [AppColors.candyOrange, Color(0xFFFF7043)])
+                    : LinearGradient(colors: [Colors.grey.withValues(alpha: 0.5), Colors.grey.withValues(alpha: 0.3)]),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: canClaim ? [BoxShadow(color: AppColors.candyOrange.withValues(alpha: 0.4), blurRadius: 8)] : [],
+              ),
+              child: Text(
+                canClaim ? 'Claim' : 'Claimed',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13, fontFamily: 'Baloo2'),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn().slideY(begin: 0.2, end: 0);
   }
 }
 
