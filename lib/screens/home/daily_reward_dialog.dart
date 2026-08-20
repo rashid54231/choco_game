@@ -146,3 +146,4 @@ class DailyRewardDialog extends ConsumerWidget {
     );
   }
 }
+//daily rewards
